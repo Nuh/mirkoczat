@@ -11,13 +11,14 @@ const Mirkobot = require('./main');
 
 // Prepare configuration module
 let config = new Config({
-    server: "ws://mirkoczat.pl/socket/websocket"
+    host: "0.0.0.0",
+    port: "8080"
 });
 
 // Initialize application
 let bot = new Mirkobot(config)
 if (!bot.run()) {
-    process.exit(1)
+    process.exit(1);
 }
 
 // User Input loop

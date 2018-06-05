@@ -1,0 +1,222 @@
+class AbstractModularized {
+    constructor(name, ...paths) {
+        if (new.target === AbstractModularized) {
+            throw new TypeError("Cannot construct AbstractModularized instances directly");
+        }
+
+        this._ = {
+            debug: Debug(`${name || `unknown:${new Date()}`}:MODULE`),
+            options: {
+                name: name,
+                paths: paths
+            }
+        }
+
+        this.loaded = false;
+        this.modules = {};
+    }
+
+    isPrepared() {
+        return !_.some(this.massExecute('isPrepared'), (value) => value === false)
+    }
+
+    isInitialized() {
+        return !_.some(this.massExecute('isInitialized'), (value) => value === false)
+    }
+
+    isReady() {
+        if (!this.loaded) {
+            while (_.some(this.massExecute('isReady'), (value) => value === false)) {
+                this._.debug('Waiting on modules readiness')
+                sleep(1000)
+            }
+        }
+        return true
+    }
+
+    getModules() {
+        return this.modules;
+    }
+
+    getModulesNames() {
+        return _.keys(this.modules);
+    }
+
+    isLoadedModule(name) {
+        return _.toLower(name) in this.modules
+    }
+
+    getModule(name) {
+        let module = this.getModuleDescription(name) || {}
+        return !_.isNil(module.instance) ? module.instance : module.file
+    }
+
+    getModuleDescription(name) {
+        if (this.isLoadedModule(name)) {
+            return this.modules[_.toLower(name)]
+        }
+    }
+
+    hasModule(module) {
+        try {
+            require.resolve(module.path);
+            return true;
+        } catch(e) {
+            this._.debug('No found module: %o', (module || {}).name || 'unknown');
+        }
+        return false;
+    }
+
+    initModule(obj) {
+        if (!obj) {
+            return;
+        }
+        if (obj.constructor instanceof Function || (obj.prototype && obj.prototype.constructor instanceof Function)) {
+            return new obj(this);
+        } else {
+            return obj(this);
+        }
+        return obj;
+    }
+
+    loadModule(module) {
+        if (this.hasModule(module)) {
+            if (this.isLoadedModule(module.name)) {
+                return this.getModuleDescription(module.name);
+            }
+
+            try {
+                let path = module.path;
+                let file = require(path);
+                let loadedModule = _.defaults({instance: this.initModule(file), executed: [], file: file}, module);
+
+                this.modules[_.toLower(loadedModule.name)] = loadedModule;
+
+                this._.debug('Loaded module: %o', loadedModule.name);
+                return loadedModule;
+            } catch (e) {
+                this._.debug('Failed load module: %o', (module || {}).name || 'unknown');
+                throw e;
+            }
+        }
+    }
+
+    unloadModule(name) {
+        try {
+            if (this.isLoadedModule(name)) {
+                let module = this.getModuleDescription(name)
+
+                this.execute(moduleName, 'stop')
+                this.execute(moduleName, 'destroy')
+                delete this.modules[moduleName]
+
+                this._.debug('Unloaded module: %o', module.name)
+                return true
+            }
+        } catch (e) {
+            // ignore
+        }
+        return false
+    }
+
+    loadModules(...names) {
+        let availableModules = this.availableModules();
+        let wantedModules = _(names.length ? names : 'all').castArray().flattenDeep().map(_.toLower).value();
+        let modules = _.includes(wantedModules, 'all') ? _.keys(availableModules) : wantedModules;
+
+        // Loading modules
+        for (let name of modules) {
+            this.loadModule(availableModules[name])
+        }
+
+        // this._.debug info
+        let diff = _.without.apply(_, [availableModules].concat(modules))
+        if (_.size(diff)) {
+            this._.debug('Disabled modules: %o', diff)
+        }
+    }
+
+    availableModules() {
+        return _(this._.options.paths)
+                    .map((path) => _.values(utils.modules.find(path)))
+                    .flattenDeep().sort().uniqBy('name').keyBy('name').value()
+    }
+
+    checkDependency() {
+        for (let name in this.modules) {
+            let deps = _(this.execute(name, 'dependency')).values().castArray().compact()
+                            .groupBy((v) => this.isLoadedModule.call(this, v)).value();
+            if (!_.isEmpty(deps['false'])) {
+                this._.debug('Error! Dependency is not met for %o - required %o modules!', name, deps['false']);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    execute(moduleName, methodName, ...args) {
+        let instance = this.getModule(moduleName) || {}
+        let method = instance[methodName]
+        let module = this.getModuleDescription(moduleName)
+        let value
+
+        if (method && method instanceof Function) {
+            value = method.apply(instance, args)
+            module.executed = module.executed || []
+            module.executed.push(methodName)
+            this._.debug('Executed method %o on %o', methodName, module.name)
+        }
+        return value
+    }
+
+    massExecute(methodName, ...args) {
+        let ret = {}
+        for (let name in this.getModules()) {
+            ret[name] = this.execute.apply(this, [name, methodName].concat(args))
+        }
+        return ret
+    }
+
+    prepare() {
+        this.massExecute('prepare')
+        if (!this.isPrepared()) {
+            return false
+        }
+
+        if (!this.checkDependency()) {
+            console.error('Required modules does not met required dependencies needed to run!')
+            return false
+        }
+    }
+
+    init() {
+        this.massExecute('init')
+        if (!this.isInitialized()) {
+            return false
+        }
+    }
+
+    run() {
+        if (!this.loaded) {
+            this.prepare();
+            this.init();
+            if (this.isReady()) {
+                this.massExecute('run')
+                this.loaded = true
+            }
+        }
+        return this.loaded
+    }
+
+    stop() {
+        if (this.loaded) {
+            this.loaded = false
+
+            this.massExecute('stop')
+            this.massExecute('destroy')
+        }
+        return !this.loaded
+    }
+}
+
+module.exports = AbstractModularized;

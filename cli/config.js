@@ -2,7 +2,7 @@ const debug = Debug('CONFIG');
 const nconf = require('nconf');
 
 class Config {
-    constructor(defaults = {}, file = 'mirkobot.config') {
+    constructor(defaults = {}, file = 'mirkoczat.config') {
         this.file = file;
         this.defaults = defaults;
         this.loaded = false;
@@ -27,7 +27,7 @@ class Config {
         nconf.argv(
                 require('yargs')
                     .version('1.0.0')
-                    .usage('MirkoCzat Bot - simply helper in control of channel')
+                    .usage('MirkoCzat - simply server to chat')
                     .options({
                         "c": {
                             alias: 'config',
@@ -39,7 +39,7 @@ class Config {
                         },
                         "t": {
                             alias: 'token',
-                            describe: 'User Token API to connect with MirkoCzat',
+                            describe: 'User Token API to connect with Discord',
                             type: 'string',
                             requiresArg: true
                          }
