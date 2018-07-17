@@ -1,6 +1,5 @@
-const debug = Debug('MIKROCZAT');
-const WykopAPI = require('wykop-api-client');
 const md5 = require('crypto-js/md5');
+const WykopAPI = require('wykop-api-client');
 
 const WYKOP_KEY_PROPERTY = 'auth:wykop:key';
 const WYKOP_SECRET_PROPERTY = 'auth:wykop:secret';
@@ -15,13 +14,12 @@ let parseToken = (data) => {
 }
 
 class WykopAuth {
-    constructor(auth) {
-        auth.app.config.require(WYKOP_KEY_PROPERTY, WYKOP_SECRET_PROPERTY)
+    constructor(parent) {
+        parent.context.config.require(WYKOP_KEY_PROPERTY, WYKOP_SECRET_PROPERTY)
 
-        this.client = null;
         this.config = {
-            key: auth.app.property(WYKOP_KEY_PROPERTY),
-            secret: auth.app.property(WYKOP_SECRET_PROPERTY)
+            key: parent.context.property(WYKOP_KEY_PROPERTY),
+            secret: parent.context.property(WYKOP_SECRET_PROPERTY)
         };
     }
 
@@ -37,15 +35,15 @@ class WykopAuth {
         return false;
     }
 
-    async authorize(user, data) {
-        if (await this.validate(data) && this.client) {
-            let token = parseToken(data);
-            try {
+    async authorize(data) {
+        let token = parseToken(data);
+        try {
+            if (this.client) {
                 let data = await this.client.request({type: 'user', method: 'login', postParams: {login: token.login, accountkey: token.token}});
-                return new (ctx('api.user.authorizations.WykopAuthorization'))(user, data);
-            } catch (e) {
-                throw e && e.error && e.error.message ? `API response - ${e.error.code}# ${e.error.message}` : (e && e.message ? e.message : e);
+                return new (ctx('api.users.WykopUser'))(data);
             }
+        } catch (e) {
+            throw `${e && e.error && e.error.message ? `API response - ${e.error.code}# ${e.error.message}` : (e && e.message ? e.message : e)} (login: ${token.login})`;
         }
         throw 'Invalid token';
     }

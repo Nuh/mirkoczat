@@ -1,4 +1,4 @@
-class User {
+class Socket {
     //let authenticated
 
     constructor(socket, request) {
@@ -7,4 +7,4 @@ class User {
 
 }
 
-module.exports = User;
+module.exports = Socket;

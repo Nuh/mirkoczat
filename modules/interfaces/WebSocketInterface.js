@@ -3,8 +3,9 @@ const url = require('url');
 const WebSocket = require('ws');
 
 class WebSocketInterface {
-    constructor(strategy) {
-        this.auth = strategy.app.getModule('auth');
+    constructor(parent) {
+        this.auth = parent.context.getModule('auth');
+        this.users = parent.context.getModule('users');
 
         // DATA
         this.server = {
@@ -21,8 +22,9 @@ class WebSocketInterface {
             this.server.socket = new WebSocket.Server({
                 host: '0.0.0.0',
                 port: 8080,
-                backlog: 1024,
+                backlog: 128,
                 maxPayload: 4096,
+                clientTracking: true,
                 perMessageDeflate: {
                     zlibDeflateOptions: {
                         chunkSize: 1024,
@@ -49,15 +51,12 @@ class WebSocketInterface {
 
                     try {
                         let params = new url.URLSearchParams(url.parse(info.req.url).search);
-                        let strategy = params.get('auth') || params.get('provider')
-                        let token = params.get('token')
-
-                        if (await this.auth.validate(strategy, token)) {
-                            let user = await this.auth.authorize(info, strategy, token);
-                            if (user) {
-                                // TODO: do user
-                                return typeof callback === 'function' ? callback(true) || true : true
-                            }
+                        let strategy = params.get('auth') || params.get('provider') || 'anonymous';
+                        let token = params.get('token') || params.get('nick');
+                        let user = await this.auth.authorize(strategy, token);
+                        if (user) {
+                            // TODO: do user
+                            return typeof callback === 'function' ? callback(true) || true : true;
                         }
                     } catch (e) {
                         return callbackCallerFactory(1011, e && e.message ? e.message : e)(callback);
@@ -73,7 +72,7 @@ class WebSocketInterface {
     run() {
         let wss = this.configureServer();
         wss.on('connection', (ws, req) => {
-            debug('%o', wss.clients.size)
+            debug('%o', wss.clients.size);
 
             ws.on('message', function (message) {
                 console.log('received: %s', message);

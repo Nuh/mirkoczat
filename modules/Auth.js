@@ -1,38 +1,41 @@
-const MODULES_PATH = `${__dirname}/auth`;
+const MODULES_PATH = `${__dirname}/auths`;
 
 class Auth extends ctx('api.modularize.AbstractStrategized') {
 
-    constructor(applicationInstance) {
+    constructor(context) {
         super('AUTH', MODULES_PATH)
-        this.app = applicationInstance;
+        this.context = context;
         this.loadModules();
     }
 
-    run() {
-        super.run();
-//        this.authorize({}, 'wykop', 'eyJhcHBrZXkiOiJIeVc1SThnWldSIiwibG9naW4iOiJCb3NtYW5Qb2NpYWdvd3kiLCJ0b2tlbiI6IkxkNmJSRHdsOUhjRHQ4dncxQ1RaIiwic2lnbiI6IjBhOWU5MWJhZGUyNDM2MDE1YTdhMDgzYjVmOWFhMzhjIn0=').then(console.log)
+    dependency() {
+        return ['users'];
     }
 
-    async validate(channel, token) {
+//  eyJhcHBrZXkiOiJIeVc1SThnWldSIiwibG9naW4iOiJCb3NtYW5Qb2NpYWdvd3kiLCJ0b2tlbiI6IkxkNmJSRHdsOUhjRHQ4dncxQ1RaIiwic2lnbiI6IjBhOWU5MWJhZGUyNDM2MDE1YTdhMDgzYjVmOWFhMzhjIn0=
+
+    async validate(channel, data) {
         try {
             let strategy = this.getStrategy(channel);
-            let isValid = await strategy.validate(token);
+            let isValid = await strategy.validate(data);
             return !!isValid;
         } catch(msg) {
-            this.debug('Failed validate token %o via %s.\nReason: %s', token, channel, msg);
+            this.debug('Failed validate via %s data: %o\nReason: %s', channel, data, msg);
             return false;
         }
     }
 
-    async authorize(socket, channel, token) {
-        try {
-            let strategy = this.getStrategy(channel);
-            let auth = await strategy.authorize(socket, token)
-            this.debug('Successful log in %o via %s', auth.login, channel)
-            return auth;
-        } catch(msg) {
-            this.debug('Failed authorize token %o via %s.\nReason: %s', token, channel, msg);
-            throw msg;
+    async authorize(channel, data) {
+        if (await this.validate(channel, data)) {
+            try {
+                let strategy = this.getStrategy(channel);
+                let auth = this.context.getModule('users').register(await strategy.authorize(data));
+                this.debug('Successful log in %o via %s', auth.username, channel)
+                return auth;
+            } catch(msg) {
+                this.debug('Failed authorize via %s data: %o\nReason: %s', channel, data, msg);
+                throw msg;
+            }
         }
     }
 

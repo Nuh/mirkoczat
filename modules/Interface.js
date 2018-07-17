@@ -1,16 +1,16 @@
-const MODULES_PATH = `${__dirname}/interface`;
+const MODULES_PATH = `${__dirname}/interfaces`;
 const debug = Debug('INTERFACE');
 
 class Interface extends ctx('api.modularize.AbstractStrategized') {
 
-    constructor(applicationInstance) {
+    constructor(context) {
         super('INTERFACE', MODULES_PATH)
-        this.app = applicationInstance;
+        this.context = context;
         this.loadModules();
     }
 
     dependency() {
-        return ['auth'];
+        return ['auth', 'users'];
     }
 
 }
