@@ -4,15 +4,12 @@ class AbstractModularized {
             throw new TypeError("Cannot construct AbstractModularized instances directly");
         }
 
-        this._ = {
-            debug: Debug(`${name || `unknown:${new Date()}`}:MODULE`),
-            options: {
-                name: name,
-                paths: paths
-            }
-        }
-
         this.loaded = false;
+        this.debug = Debug(`${name || `unknown:${new Date()}`}:MODULE`);
+        this.options = {
+            name: name,
+            paths: paths
+        }
         this.modules = {};
     }
 
@@ -27,7 +24,7 @@ class AbstractModularized {
     isReady() {
         if (!this.loaded) {
             while (_.some(this.massExecute('isReady'), (value) => value === false)) {
-                this._.debug('Waiting on modules readiness')
+                this.debug('Waiting on modules readiness')
                 sleep(1000)
             }
         }
@@ -62,7 +59,7 @@ class AbstractModularized {
             require.resolve(module.path);
             return true;
         } catch(e) {
-            this._.debug('No found module: %o', (module || {}).name || 'unknown');
+            this.debug('No found module: %o', (module || {}).name || 'unknown');
         }
         return false;
     }
@@ -92,10 +89,10 @@ class AbstractModularized {
 
                 this.modules[_.toLower(loadedModule.name)] = loadedModule;
 
-                this._.debug('Loaded module: %o', loadedModule.name);
+                this.debug('Loaded module: %o', loadedModule.name);
                 return loadedModule;
             } catch (e) {
-                this._.debug('Failed load module: %o', (module || {}).name || 'unknown');
+                this.debug('Failed load module: %o', (module || {}).name || 'unknown');
                 throw e;
             }
         }
@@ -110,7 +107,7 @@ class AbstractModularized {
                 this.execute(moduleName, 'destroy')
                 delete this.modules[moduleName]
 
-                this._.debug('Unloaded module: %o', module.name)
+                this.debug('Unloaded module: %o', module.name)
                 return true
             }
         } catch (e) {
@@ -129,15 +126,15 @@ class AbstractModularized {
             this.loadModule(availableModules[name])
         }
 
-        // this._.debug info
+        // Debug info
         let diff = _.without.apply(_, [availableModules].concat(modules))
         if (_.size(diff)) {
-            this._.debug('Disabled modules: %o', diff)
+            this.debug('Disabled modules: %o', diff)
         }
     }
 
     availableModules() {
-        return _(this._.options.paths)
+        return _(this.options.paths)
                     .map((path) => _.values(utils.modules.find(path)))
                     .flattenDeep().sort().uniqBy('name').keyBy('name').value()
     }
@@ -147,7 +144,7 @@ class AbstractModularized {
             let deps = _(this.execute(name, 'dependency')).values().castArray().compact()
                             .groupBy((v) => this.isLoadedModule.call(this, v)).value();
             if (!_.isEmpty(deps['false'])) {
-                this._.debug('Error! Dependency is not met for %o - required %o modules!', name, deps['false']);
+                this.debug('Error! Dependency is not met for %o - required %o modules!', name, deps['false']);
                 return false;
             }
         }
@@ -164,7 +161,7 @@ class AbstractModularized {
             value = method.apply(instance, args)
             module.executed = module.executed || []
             module.executed.push(methodName)
-            this._.debug('Executed method %o on %o', methodName, module.name)
+            this.debug('Executed method %o on %o', methodName, module.name)
         }
         return value
     }

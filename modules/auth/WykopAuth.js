@@ -5,7 +5,6 @@ const md5 = require('crypto-js/md5');
 const WYKOP_KEY_PROPERTY = 'auth:wykop:key';
 const WYKOP_SECRET_PROPERTY = 'auth:wykop:secret';
 
-
 let parseToken = (data) => {
     try {
         let json = Buffer.from(data, 'base64').toString();
@@ -15,7 +14,7 @@ let parseToken = (data) => {
     }
 }
 
-class Wykop {
+class WykopAuth {
     constructor(auth) {
         auth.app.config.require(WYKOP_KEY_PROPERTY, WYKOP_SECRET_PROPERTY)
 
@@ -38,11 +37,12 @@ class Wykop {
         return false;
     }
 
-    async authorize(data) {
+    async authorize(user, data) {
         if (await this.validate(data) && this.client) {
             let token = parseToken(data);
             try {
-                return await this.client.request({type: 'user', method: 'login', postParams: {login: token.login, accountkey: token.token}})
+                let data = await this.client.request({type: 'user', method: 'login', postParams: {login: token.login, accountkey: token.token}});
+                return new (ctx('api.user.authorizations.WykopAuthorization'))(user, data);
             } catch (e) {
                 throw e && e.error && e.error.message ? `API response - ${e.error.code}# ${e.error.message}` : (e && e.message ? e.message : e);
             }
@@ -52,4 +52,4 @@ class Wykop {
 
 }
 
-module.exports = Wykop;
+module.exports = WykopAuth;

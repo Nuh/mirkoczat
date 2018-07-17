@@ -1,5 +1,4 @@
 global._ = require('lodash');
-global.utils = require('./lib/utils');
 global.CronJob = require('cron').CronJob;
 global.Debug = require('debug');
 global.Random = require('seedrandom');
@@ -7,7 +6,7 @@ global.Random = require('seedrandom');
 const rnd = new Random.xor4096(null, {global: true, entropy: true});
 
 const Config = require('./cli/config');
-const Mirkobot = require('./main');
+const Mirkoczat = require('./main');
 
 // Prepare configuration module
 let config = new Config({
@@ -16,7 +15,7 @@ let config = new Config({
 });
 
 // Initialize application
-let bot = new Mirkobot(config)
+let bot = new Mirkoczat(config)
 if (!bot.run()) {
     process.exit(1);
 }

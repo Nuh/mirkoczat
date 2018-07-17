@@ -1,31 +1,32 @@
 global._ = require('lodash');
-global.Debug = _.noop() || global.Debug;
-global.AbstractModularized = require('./api/model/AbstractModularized');
-global.AbstractCoreModule = require('./api/model/AbstractCoreModule');
-
-const MODULES_PATH = 'modules';
+global.Debug = global.Debug || (() => _.noop);
+global.utils = require('./lib/utils');
+global.loader = global.context = global.ctx = new (require('./lib/Loader'))('./api');
 
 const debug = Debug('CORE');
-const db = require('./api/db');
-const queue = require('./api/queue');
 
-class Mirkoczat extends AbstractModularized {
+class Mirkoczat extends ctx('api.modularize.AbstractModularized') {
     constructor(config) {
-        super('CORE', MODULES_PATH);
+        super('CORE', 'modules');
 
-        this.db = db
-        this.queue = queue
-        this.config = config
+        let modules = _(config.get('modules', ['all']))
+                                .castArray()
+                                .flattenDeep()
+                                .map(_.toLower)
+                                .value()
 
-        let wantedModules = _(config.get('modules', ['all'])).castArray().flattenDeep().map(_.toLower).value();
-        this.loadModules(wantedModules);
+        this.db = require('./lib/services/db');
+        this.queue = require('./lib/services/queue');
+        this.config = config;
+
+        this.loadModules(modules);
     }
 
     bus(/*...*/) {
         if (arguments.length > 0) {
-            queue.on.apply(queue, arguments)
+            this.queue.on.apply(queue, arguments);
         }
-        return queue
+        return queue;
     }
 
     property(/*...*/) {
