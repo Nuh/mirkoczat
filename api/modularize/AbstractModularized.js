@@ -9,26 +9,26 @@ class AbstractModularized {
         this.options = {
             name: name,
             paths: paths
-        }
+        };
         this.modules = {};
     }
 
     isPrepared() {
-        return !_.some(this.massExecute('isPrepared'), (value) => value === false)
+        return !_.some(this.massExecute('isPrepared'), (value) => value === false);
     }
 
     isInitialized() {
-        return !_.some(this.massExecute('isInitialized'), (value) => value === false)
+        return !_.some(this.massExecute('isInitialized'), (value) => value === false);
     }
 
     isReady() {
         if (!this.loaded) {
             while (_.some(this.massExecute('isReady'), (value) => value === false)) {
-                this.debug('Waiting on modules readiness')
-                sleep(1000)
+                this.debug('Waiting on modules readiness');
+                sleep(1000);
             }
         }
-        return true
+        return true;
     }
 
     getModules() {
@@ -40,11 +40,11 @@ class AbstractModularized {
     }
 
     isLoadedModule(name) {
-        return _.toLower(name) in this.modules
+        return _.toLower(name) in this.modules;
     }
 
     getModule(name) {
-        let module = this.getModuleDescription(name) || {}
+        let module = this.getModuleDescription(name) || {};
         return !_.isNil(module.instance) ? module.instance : module.file
     }
 
@@ -101,13 +101,13 @@ class AbstractModularized {
     unloadModule(name) {
         try {
             if (this.isLoadedModule(name)) {
-                let module = this.getModuleDescription(name)
+                let module = this.getModuleDescription(name);
 
-                this.execute(moduleName, 'stop')
-                this.execute(moduleName, 'destroy')
-                delete this.modules[moduleName]
+                this.execute(moduleName, 'stop');
+                this.execute(moduleName, 'destroy');
+                delete this.modules[moduleName];
 
-                this.debug('Unloaded module: %o', module.name)
+                this.debug('Unloaded module: %o', module.name);
                 return true
             }
         } catch (e) {
@@ -152,44 +152,44 @@ class AbstractModularized {
     }
 
     execute(moduleName, methodName, ...args) {
-        let instance = this.getModule(moduleName) || {}
-        let method = instance[methodName]
-        let module = this.getModuleDescription(moduleName)
-        let value
+        let instance = this.getModule(moduleName) || {};
+        let method = instance[methodName];
+        let module = this.getModuleDescription(moduleName);
+        let value;
 
         if (method && method instanceof Function) {
-            value = method.apply(instance, args)
-            module.executed = module.executed || []
-            module.executed.push(methodName)
-            this.debug('Executed method %o on %o', methodName, module.name)
+            value = method.apply(instance, args);
+            module.executed = module.executed || [];
+            module.executed.push(methodName);
+            this.debug('Executed method %o on %o', methodName, module.name);
         }
-        return value
+        return value;
     }
 
     massExecute(methodName, ...args) {
-        let ret = {}
+        let ret = {};
         for (let name in this.getModules()) {
-            ret[name] = this.execute.apply(this, [name, methodName].concat(args))
+            ret[name] = this.execute.apply(this, [name, methodName].concat(args));
         }
-        return ret
+        return ret;
     }
 
     prepare() {
-        this.massExecute('prepare')
+        this.massExecute('prepare');
         if (!this.isPrepared()) {
-            return false
+            return false;
         }
 
         if (!this.checkDependency()) {
-            console.error('Required modules does not met required dependencies needed to run!')
-            return false
+            console.error('Required modules does not met required dependencies needed to run!');
+            return false;
         }
     }
 
     init() {
-        this.massExecute('init')
+        this.massExecute('init');
         if (!this.isInitialized()) {
-            return false
+            return false;
         }
     }
 
@@ -198,21 +198,21 @@ class AbstractModularized {
             this.prepare();
             this.init();
             if (this.isReady()) {
-                this.massExecute('run')
-                this.loaded = true
+                this.massExecute('run');
+                this.loaded = true;
             }
         }
-        return this.loaded
+        return this.loaded;
     }
 
     stop() {
         if (this.loaded) {
-            this.loaded = false
+            this.loaded = false;
 
-            this.massExecute('stop')
-            this.massExecute('destroy')
+            this.massExecute('stop');
+            this.massExecute('destroy');
         }
-        return !this.loaded
+        return !this.loaded;
     }
 }
 

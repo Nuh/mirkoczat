@@ -3,9 +3,8 @@ const WebSocket = require('ws');
 
 class WebSocketInterface {
     constructor(parent) {
-        this.auth = parent.context.getModule('auth');
-        this.users = parent.context.getModule('users');
         this.debug = Debug('INTERFACE:WEBSOCKET');
+        this.context = parent.context;
 
         // DATA
         this.server = {
@@ -13,8 +12,14 @@ class WebSocketInterface {
             socket: null,
             channels: [],
             users: []
-        }
+        };
         this.channels = {};
+    }
+
+    prepare() {
+        this.auth = this.context.getModule('auth');
+        this.users = this.context.getModule('users');
+        this.channels = this.context.getModule('channels');
     }
 
     configureServer() {
@@ -74,10 +79,15 @@ class WebSocketInterface {
         wss.on('connection', (ws, req) => {
             try {
                 let user = req.connection.authorize;
-                let session = new (ctx('api.users.Session'))(ws, req, user);
+                let session = new (ctx('api.Session'))(ws, req, user);
                 user.registerSession(session);
             } catch (e) {
-                ws.terminate();
+                try {
+                    ws.terminate();
+                } catch(e) {
+                    // ignore
+                }
+
                 this.debug('Force terminate session because catch exception: %o', e)
             }
 

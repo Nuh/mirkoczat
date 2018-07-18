@@ -4,13 +4,13 @@ const debug = Debug('INTERFACE');
 class Interface extends ctx('api.modularize.AbstractStrategized') {
 
     constructor(context) {
-        super('INTERFACE', MODULES_PATH)
+        super('INTERFACE', MODULES_PATH);
         this.context = context;
         this.loadModules();
     }
 
     dependency() {
-        return ['auth', 'users'];
+        return ['auth', 'channels', 'users'];
     }
 
 }

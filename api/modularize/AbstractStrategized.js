@@ -16,7 +16,7 @@ class AbstractStrategized extends ctx('api.modularize.AbstractModularized') {
     getStrategy(name) {
         let strategy = this.getModule(name) || this.getModule(`${name}${this.name.toLowerCase()}`);
         if (!strategy) {
-            throw `Unknown strategy ${name}`
+            throw `Unknown strategy ${name}`;
         }
         return strategy;
     }

@@ -1,6 +1,7 @@
 class Users {
 
     constructor(context) {
+        this.debug = Debug('USERS');
         this.context = context;
         this.instances = new Set();
     }
@@ -27,6 +28,7 @@ class Users {
         }
 
         this.instances.add(user);
+        this.debug('Registered a new user %o', user.username);
         return user;
     }
 
@@ -36,8 +38,11 @@ class Users {
             currentUser = this.register(user);
         }
 
-        this.instances.delete(currentUser);
-        return currentUser.terminate();
+        currentUser.terminate();
+        if (this.instances.delete(currentUser)) {
+            this.debug('Unregistered user %o', user.username);
+        }
+        return true;
     }
 
 }

@@ -13,7 +13,7 @@ class Mirkoczat extends ctx('api.modularize.AbstractModularized') {
                                 .castArray()
                                 .flattenDeep()
                                 .map(_.toLower)
-                                .value()
+                                .value();
 
         this.db = require('./lib/services/db');
         this.queue = require('./lib/services/queue');
@@ -26,11 +26,11 @@ class Mirkoczat extends ctx('api.modularize.AbstractModularized') {
         if (arguments.length > 0) {
             this.queue.on.apply(queue, arguments);
         }
-        return queue;
+        return this.queue;
     }
 
     property(/*...*/) {
-        let args = _.toArray(arguments)
+        let args = _.toArray(arguments);
         if (args.length > 0) {
             return this.config.get.apply(this.config, args)
         }
@@ -38,4 +38,4 @@ class Mirkoczat extends ctx('api.modularize.AbstractModularized') {
     }
 }
 
-module.exports = Mirkoczat
+module.exports = Mirkoczat;

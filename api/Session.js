@@ -1,24 +1,26 @@
 const requestIp = require('request-ip');
 const requestInfo = require('request-info');
 const geoIp = require('geoip-lite');
+const EventEmitter2 = require('eventemitter2').EventEmitter2;
 
-let proxy = (ws) => { return (funcName, ...args) => ((ws || {})[funcName] || _.noop).bind(ws)(...args) }
+let proxyEvent = (source, target, eventName) => source.on(eventName, (...args) => target.emit(eventName, ...args));
+let proxyEvents = (source, target, ...eventNames) => _([...eventNames]).flattenDeep().each((e) => proxyEvent(source, target, e));
 
-class Session {
+class Session extends EventEmitter2 {
     constructor(ws, req, user) {
+        if (!ws || !req || !user) {
+            throw new TypeError("Nulled required arguments");
+        }
+
+        super();
+
         this.websocket = ws;
         this.request = req;
         this.user = user;
 
+        proxyEvents(ws, this, 'close');
+
         this.lastActivity = new Date();
-    }
-
-    addEventListener(type, listener) {
-        return this.websocket && this.websocket.addEventListener(...arguments);
-    }
-
-    removeEventListener(type, listener) {
-        return this.websocket && this.websocket.removeEventListener(...arguments);
     }
 
     isOnline() {
@@ -54,5 +56,7 @@ class Session {
         }
     }
 }
+
+let proxy = (ws) => (funcName, ...args) => ((ws || {})[funcName] || _.noop).bind(ws)(...args);
 
 module.exports = Session;
