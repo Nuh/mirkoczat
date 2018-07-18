@@ -1,22 +1,19 @@
 {
-  "name": "mirkoczat",
+  "name": "mikroczat",
   "version": "1.0.0",
-  "description": "MirkoCzat",
+  "description": "Mikroczat - a dedicated server of websocket chat for Wykop.pl users",
   "main": "main.js",
   "bin": {
     "mirkoczat": "./main.js"
   },
   "dependencies": {
     "async-polling": "^0.2.1",
-    "bluebird": "^3.5.1",
-    "cheerio": "^1.0.0-rc.2",
     "cluster": "^0.7.7",
     "cron": "^1.3.0",
-    "debug": "^3.1.0",
-    "discord.js": "^11.3.2",
     "eventemitter2": "^5.0.1",
     "events": "^2.0.0",
     "fs-extra": "^5.0.0",
+    "geoip-lite": "^1.3.1",
     "human-date": "^1.4.0",
     "lodash": "^4.17.5",
     "lodash-id": "^0.14.0",
@@ -24,10 +21,10 @@
     "moment-timezone": "^0.5.14",
     "nconf": "^0.10.0",
     "request": "^2.83.0",
+    "request-info": "^0.1.0",
+    "request-ip": "^2.1.1",
     "request-promise": "^4.2.2",
     "seedrandom": "^2.4.3",
-    "strip-combining-marks": "^1.0.0",
-    "tough-cookie": "^2.3.4",
     "ws": "^5.2.0",
     "wykop-api-client": "^1.0.3",
     "yargs": "^11.0.0"
@@ -40,6 +37,8 @@
   "license": "UNLICENSED",
   "private": true,
   "optionalDependencies": {
+    "debug": "^3.1.0",
+    "supports-color": "^5.4.0",
     "bufferutil": "^3.0.5"
   }
 }

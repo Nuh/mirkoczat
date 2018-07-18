@@ -5,7 +5,7 @@ class AbstractModularized {
         }
 
         this.loaded = false;
-        this.debug = Debug(`${name || `unknown:${new Date()}`}:MODULE`);
+        this.debug = Debug(`${name || `unknown:${new Date()}`}`);
         this.options = {
             name: name,
             paths: paths

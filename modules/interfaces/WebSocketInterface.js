@@ -1,4 +1,3 @@
-const debug = Debug('MIKROCZAT');
 const url = require('url');
 const WebSocket = require('ws');
 
@@ -6,6 +5,7 @@ class WebSocketInterface {
     constructor(parent) {
         this.auth = parent.context.getModule('auth');
         this.users = parent.context.getModule('users');
+        this.debug = Debug('INTERFACE:WEBSOCKET');
 
         // DATA
         this.server = {
@@ -55,7 +55,7 @@ class WebSocketInterface {
                         let token = params.get('token') || params.get('nick');
                         let user = await this.auth.authorize(strategy, token);
                         if (user) {
-                            // TODO: do user
+                            info.req.connection.authorize = user;
                             return typeof callback === 'function' ? callback(true) || true : true;
                         }
                     } catch (e) {
@@ -72,14 +72,19 @@ class WebSocketInterface {
     run() {
         let wss = this.configureServer();
         wss.on('connection', (ws, req) => {
-            debug('%o', wss.clients.size);
+            try {
+                let user = req.connection.authorize;
+                let session = new (ctx('api.users.Session'))(ws, req, user);
+                user.registerSession(session);
+            } catch (e) {
+                ws.terminate();
+                this.debug('Force terminate session because catch exception: %o', e)
+            }
 
             ws.on('message', function (message) {
                 console.log('received: %s', message);
                 ws.send(message)
             });
-
-//            ws.send('something');
         });
     }
 
