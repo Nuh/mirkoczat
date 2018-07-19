@@ -14,7 +14,7 @@ class AbstractStrategized extends ctx('api.modularize.AbstractModularized') {
     }
 
     getStrategy(name) {
-        let strategy = this.getModule(name) || this.getModule(`${name}${this.name.toLowerCase()}`);
+        let strategy = this.getModule(_.toLower(name)) || this.getModule(_.toLower(`${name}${this.name}`));
         if (!strategy) {
             throw `Unknown strategy ${name}`;
         }
@@ -22,7 +22,7 @@ class AbstractStrategized extends ctx('api.modularize.AbstractModularized') {
     }
 
     getStrategies() {
-        return _.map(this.getModulesNames(), (name) => name.replace(new RegExp(`${this.name.toLowerCase()}$`), ''));
+        return _.map(this.getModulesNames(), (name) => name.replace(new RegExp(`${_.toLower(this.name)}$`), ''));
     }
 }
 

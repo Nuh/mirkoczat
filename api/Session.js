@@ -3,9 +3,6 @@ const requestInfo = require('request-info');
 const geoIp = require('geoip-lite');
 const EventEmitter2 = require('eventemitter2').EventEmitter2;
 
-let proxyEvent = (source, target, eventName) => source.on(eventName, (...args) => target.emit(eventName, ...args));
-let proxyEvents = (source, target, ...eventNames) => _([...eventNames]).flattenDeep().each((e) => proxyEvent(source, target, e));
-
 class Session extends EventEmitter2 {
     constructor(ws, req, user) {
         if (!ws || !req || !user) {
@@ -18,7 +15,7 @@ class Session extends EventEmitter2 {
         this.request = req;
         this.user = user;
 
-        proxyEvents(ws, this, 'close');
+        utils.proxy.event(ws, this, 'message', 'close');
 
         this.lastActivity = new Date();
     }

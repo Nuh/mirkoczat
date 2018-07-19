@@ -10,7 +10,7 @@ class Interface extends ctx('api.modularize.AbstractStrategized') {
     }
 
     dependency() {
-        return ['auth', 'channels', 'users'];
+        return ['auth', 'channels', 'users', 'message'];
     }
 
 }

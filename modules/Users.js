@@ -6,6 +6,10 @@ class Users {
         this.instances = new Set();
     }
 
+    prepare() {
+        this.message = this.context.getModule('Message');
+    }
+
     get(user) {
         if (user instanceof ctx('api.users.AbstractUser') && !(user instanceof ctx('api.users.User'))) {
             return _([...this.instances]).find((i) => i.equals(user));
@@ -23,11 +27,7 @@ class Users {
             return this.get(user).merge(user);
         }
 
-        if (user.type === 'anonymous') {
-            user.once('offline', () => this.unregister(user));
-        }
-
-        this.instances.add(user);
+        this.instances.add(bindEvents(this, user));
         this.debug('Registered a new user %o', user.username);
         return user;
     }
@@ -47,4 +47,25 @@ class Users {
 
 }
 
+let bindEvents = (users, user) => {
+    if (!user || !user instanceof ctx('api.users.AbstractUser')) {
+        return;
+    }
+
+    user.on('message', async (raw) => {
+        let msg = users.message.parse(raw, user);
+        if (msg) {
+            let result = await users.message.handle(msg);
+        }
+        console.log(result);
+    });
+
+    if (user.type === 'anonymous') {
+        user.once('offline', () => users.unregister(user));
+    }
+
+    return user;
+};
+
 module.exports = Users;
+

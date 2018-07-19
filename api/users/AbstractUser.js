@@ -118,7 +118,6 @@ let bindEvents = (user, session) => {
             let currentSessions = user.sessions.size;
 
             // Events
-            user.emit('close', user);
             if (currentSessions <= 0) {
                 _.each([...user.channels], (ch) => user.leave(ch, reason));
                 user.emit('offline', user);
@@ -128,6 +127,8 @@ let bindEvents = (user, session) => {
             user.debug('Unregister a closed session, reason: %s (%d), remaining sessions: %d', reason || 'no reason', code, currentSessions);
         }
     });
+
+    utils.proxy.event(session, user, 'message', 'close');
 
     return session;
 };

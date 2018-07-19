@@ -90,11 +90,6 @@ class WebSocketInterface {
 
                 this.debug('Force terminate session because catch exception: %o', e)
             }
-
-            ws.on('message', function (message) {
-                console.log('received: %s', message);
-                ws.send(message)
-            });
         });
     }
 
