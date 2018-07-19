@@ -1,6 +1,6 @@
 {
   "name": "mikroczat",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Mikroczat - a dedicated server of websocket chat for Wykop.pl users",
   "main": "main.js",
   "bin": {

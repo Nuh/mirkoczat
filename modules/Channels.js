@@ -14,6 +14,14 @@ class Channels {
         return _([...this.instances]).find((i) => i.name === name) || null;
     }
 
+    getOfTypes(type) {
+        return _([...this.instances]).filter((i) => i.type === type) || [];
+    }
+
+    getAllCanJoin(user) {
+        return _([...this.instances]).filter((i) => i.canJoin(user)) || [];
+    }
+
     has(channel) {
         return !!this.get(channel);
     }
@@ -23,9 +31,9 @@ class Channels {
         if (this.has(name)) {
             channel = this.get(name);
         } else {
-            this.debug('Create a new channel %o by %s', name, user && user.username ? user.username : user || 'SYSTEM');
             channel = new (ctx('api.channels.Channel'))(name, user);
             this.instances.add(channel);
+            this.debug('Create a new channel %o by %s', name, user && user.username ? user.username : user || 'SYSTEM');
         }
         if (user && user instanceof ctx('api.users.AbstractUser')) {
             user.join(channel);

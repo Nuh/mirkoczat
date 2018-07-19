@@ -92,7 +92,7 @@ class AbstractModularized {
                 this.debug('Loaded module: %o', loadedModule.name);
                 return loadedModule;
             } catch (e) {
-                this.debug('Failed load module: %o', (module || {}).name || 'unknown');
+                this.debug('Failed load module: %o\n%O', (module || {}).name || 'unknown', e);
                 throw e;
             }
         }

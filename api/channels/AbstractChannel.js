@@ -16,7 +16,26 @@ class AbstractChannel extends EventEmitter2 {
         this.owner = user;
         this.created = new Date();
 
+        this.validate();
+
         this.debug('Created channel by %o', user && user.username ? user.username : user || 'SYSTEM');
+    }
+
+    validate() {
+        if (!/^[A-Za-z0-9-_]{3,}$/.test(this.name)) {
+            throw 'Channel name should have only "A-Za-z0-9-_" chars and minimum 3 length'
+        }
+        return true;
+    }
+
+    send(action) {
+        if (action) {
+            if (action.author && !this.users.has(action.author)) {
+                throw "User is not on the channel";
+            }
+
+            return proxy(this.users, 'send', action);
+        }
     }
 
     canJoin() {

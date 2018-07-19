@@ -1,4 +1,4 @@
-class ChannelJoinMessage {
+class ChannelListMessage {
     constructor(parent) {
         this.context = parent.context;
     }
@@ -11,8 +11,8 @@ class ChannelJoinMessage {
         if (!msg.author.isOnline()) {
             throw "User is offline";
         }
-        return this.channels.register(msg.data.name, msg.author);
+        return this.channels.getAllCanJoin(msg.author);
     }
 }
 
-module.exports = ChannelJoinMessage;
+module.exports = ChannelListMessage;

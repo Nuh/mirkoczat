@@ -88,7 +88,7 @@ class WebSocketInterface {
                     // ignore
                 }
 
-                this.debug('Force terminate session because catch exception: %o', e)
+                this.debug('Force terminate session because catch exception:\n%O', e)
             }
         });
     }

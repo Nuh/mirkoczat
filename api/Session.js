@@ -14,10 +14,10 @@ class Session extends EventEmitter2 {
         this.websocket = ws;
         this.request = req;
         this.user = user;
-
-        utils.proxy.event(ws, this, 'message', 'close');
-
         this.lastActivity = new Date();
+
+        ws.on('message', (...args) => this.emit('message', _.once((msg) => this.send(msg)), ...args));
+        utils.proxy.event(ws, this, 'close');
     }
 
     isOnline() {
@@ -34,6 +34,14 @@ class Session extends EventEmitter2 {
             });
         }
         return this._clientInfo;
+    }
+
+    send(message) {
+        message = utils.convert.toResponse(message);
+        if (message instanceof Object) {
+            message = JSON.stringify(message);
+        }
+        return proxy(this.websocket)('send', message);
     }
 
     close(code, reason) {

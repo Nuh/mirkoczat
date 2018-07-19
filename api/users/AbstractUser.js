@@ -36,7 +36,6 @@ class AbstractUser extends EventEmitter2 {
         if (session && session instanceof ctx('api.Session')) {
             if (!this.sessions.has(session)) {
                 let currentSessions = this.sessions.add(bindEvents(this, session)).size;
-                bindEvents(this, session);
 
                 // Events
                 this.emit('connect', this);
@@ -66,7 +65,7 @@ class AbstractUser extends EventEmitter2 {
     }
 
     leave(channel, reason) {
-        if (channel && channel instanceof String) {
+        if (channel && (typeof channel === 'string' || channel instanceof String)) {
             channel = _.find([...this.channels], (ch) => ch && ch.name === channel);
         }
         if (channel && channel instanceof ctx('api.channels.AbstractChannel') && this.channels.has(channel)) {
@@ -80,12 +79,20 @@ class AbstractUser extends EventEmitter2 {
         return _.some(proxy(this.sessions, 'isOnline'));
     }
 
+    send(message) {
+        return proxy(this.sessions, 'send', ...arguments);
+    }
+
     close(code, reason) {
         return proxy(this.sessions, 'close', ...arguments);
     }
 
     terminate() {
         return proxy(this.sessions, 'terminate', ...arguments);
+    }
+
+    toResponse() {
+        return utils.convert.toResponse(_.omit(this, ['sessions', 'channels']), true);
     }
 
 }

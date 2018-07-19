@@ -3,7 +3,7 @@ const MODULES_PATH = `${__dirname}/messages`;
 class Message extends ctx('api.modularize.AbstractStrategized') {
 
     constructor(context) {
-        super('MESSAGE', MODULES_PATH)
+        super('MESSAGE', MODULES_PATH);
         this.context = context;
         this.loadModules();
     }
@@ -16,27 +16,35 @@ class Message extends ctx('api.modularize.AbstractStrategized') {
         try {
             let data = JSON.parse(raw);
             if (data && data instanceof Object && data.type) {
-                let strategy = this.getStrategy(data.type);
-                if (strategy && strategy.parse instanceof Function) {
-                    return strategy.parse(data, user);
-                }
-                return new (ctx('api.Message'))(data.type, user, data.data);
+                return new (ctx('api.messages.Request'))(raw, user);
             }
-            throw "Unknown type of message or bad syntax";
         } catch (e) {
-            this.debug('Catch exception %o while try parsing message %o', e, raw);
-            throw e;
+            this.debug('Catch exception while parsing message: %o\n%O', raw, e);
+            throw "Bad syntax of message";
         }
     }
 
-    async handle(msg) {
-        if (msg && msg instanceof ctx('api.Message')) {
-            let strategy = this.getStrategy(msg.type);
-            if (strategy) {
-                return strategy.handle(msg);
+    async handle(raw, user) {
+        let req = raw;
+        let result = true;
+        let response = null;
+
+        try {
+            req = this.parse(raw, user);
+            if (req && req instanceof ctx('api.messages.Request')) {
+                let strategy = this.getStrategy(req.type);
+                if (strategy) {
+                    response = strategy.handle(req);
+                } else {
+                    throw "Not supported type of message";
+                }
             }
+        } catch(e) {
+            response = e;
+            result = false;
         }
-        throw "Unknown type of message or bad syntax";
+
+        return new (ctx('api.messages.Response'))(req, result, response);
     }
 
 }
