@@ -52,8 +52,8 @@ let bindEvents = (users, user) => {
         return;
     }
 
-    user.on('message', async (reply, msg) => {
-        reply(await users.message.handle(msg, user));
+    user.on('message', async (session, reply, msg) => {
+        reply(await users.message.handle(msg, user, session));
     });
 
     if (user.type === 'anonymous') {

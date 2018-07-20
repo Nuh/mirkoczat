@@ -16,8 +16,8 @@ class Session extends EventEmitter2 {
         this.user = user;
         this.lastActivity = new Date();
 
-        ws.on('message', (...args) => this.emit('message', _.once((msg) => this.send(msg)), ...args));
-        utils.proxy.event(ws, this, 'close');
+        utils.proxy.eventWith(ws, this, 'message', (...args) => [this, _.once((msg) => this.send(msg)), ...args]);
+        utils.proxy.eventWith(ws, this, 'close', (...args) => [this, ...args]);
     }
 
     isOnline() {
@@ -37,11 +37,14 @@ class Session extends EventEmitter2 {
     }
 
     send(message) {
-        message = utils.convert.toResponse(message);
-        if (message instanceof Object) {
-            message = JSON.stringify(message);
+        if (message) {
+            message = utils.convert.toResponse(message);
+            if (message instanceof Object) {
+                message = JSON.stringify(message);
+            }
+            return proxy(this.websocket)('send', message) || true;
         }
-        return proxy(this.websocket)('send', message);
+        return false;
     }
 
     close(code, reason) {

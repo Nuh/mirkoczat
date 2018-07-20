@@ -14,6 +14,10 @@ class AbstractChannel extends EventEmitter2 {
 
         this.name = name;
         this.owner = user;
+        this.properties = {
+            topic: '',
+            embed: ''
+        };
         this.created = new Date();
 
         this.validate();
@@ -28,18 +32,40 @@ class AbstractChannel extends EventEmitter2 {
         return true;
     }
 
-    send(action) {
-        if (action) {
-            if (action.author && !this.users.has(action.author)) {
-                throw "User is not on the channel";
-            }
+    hasUser(user) {
+        return _.isNil(user) || _.find([...this.users], (u) => u.username === utils.extract.username(user));
+    }
 
-            return proxy(this.users, 'send', action);
+    hasProperty(key) {
+        return key in (this.properties || {});
+    }
+
+    getProperty(key) {
+        if (key) {
+            return (this.properties || {})[key];
         }
     }
 
-    canJoin() {
-        return true;
+    setProperty(key, value, user = null) {
+        if (!this.hasUser(user)) {
+            throw "User is not on the channel";
+        }
+        let oldValue = this.getProperty(key);
+        if (!_.isEqual(oldValue, value)) {
+            this.properties = this.properties || {};
+            this.properties[key] = value;
+            this.send(new (ctx('api.messages.Action'))('channelproperty', user, {channel: this, key: key, value: value, oldValue: oldValue}));
+            this.debug('User %o changed property %s to %o (old: %o)', utils.extract.username(user), key, value, oldValue);
+        }
+        return this;
+    }
+
+    send(action) {
+        return proxy(this.users, 'send', action);
+    }
+
+    canJoin(user) {
+        return !!user;
     }
 
     join(user) {
@@ -48,6 +74,7 @@ class AbstractChannel extends EventEmitter2 {
         }
         if (user && user instanceof ctx('api.users.AbstractUser')) {
             if (!this.users.has(user) && this.canJoin(user)) {
+                this.send(new (ctx('api.messages.Action'))('channeljoin', user, {name: this.name}));
                 this.users.add(user);
                 this.debug('User %o joined channel', user.username);
             }
@@ -61,6 +88,7 @@ class AbstractChannel extends EventEmitter2 {
         }
         if (user && user instanceof ctx('api.users.AbstractUser')) {
             if (this.users.delete(user)) {
+                this.send(new (ctx('api.messages.Action'))('channelleave', user, {name: this.name}));
                 this.debug('User %o left channel because: %s', user.username, reason || 'no reason');
                 return true;
             }

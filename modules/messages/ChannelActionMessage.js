@@ -1,4 +1,4 @@
-class ChannelMessageMessage {
+class ChannelActionMessage {
     constructor(parent) {
         this.context = parent.context;
     }
@@ -15,8 +15,13 @@ class ChannelMessageMessage {
         if (!channel) {
             throw "Unknown channel";
         }
-        return channel.send(new (ctx('api.messages.Action'))('channelmessage', msg.author, {channel: channel, message: msg.data.message}));
+        let action = {
+             channel: channel,
+             type: msg.data.type || 'message',
+             message: msg.data.message
+         };
+        return channel.send(new (ctx('api.messages.Action'))('channelaction', msg.author, action));
     }
 }
 
-module.exports = ChannelMessageMessage;
+module.exports = ChannelActionMessage;

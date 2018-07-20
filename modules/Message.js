@@ -12,11 +12,11 @@ class Message extends ctx('api.modularize.AbstractStrategized') {
         return ['auth', 'channels', 'users'];
     }
 
-    parse(raw, user) {
+    parse(raw, user, session) {
         try {
             let data = JSON.parse(raw);
             if (data && data instanceof Object && data.type) {
-                return new (ctx('api.messages.Request'))(raw, user);
+                return new (ctx('api.messages.Request'))(raw, user, session);
             }
         } catch (e) {
             this.debug('Catch exception while parsing message: %o\n%O', raw, e);
@@ -24,17 +24,25 @@ class Message extends ctx('api.modularize.AbstractStrategized') {
         }
     }
 
-    async handle(raw, user) {
+    async handle(raw, user, session) {
         let req = raw;
         let result = true;
         let response = null;
 
         try {
-            req = this.parse(raw, user);
+            req = this.parse(raw, user, session);
             if (req && req instanceof ctx('api.messages.Request')) {
                 let strategy = this.getStrategy(req.type);
                 if (strategy) {
-                    response = strategy.handle(req);
+                    try {
+                        response = strategy.handle(req);
+                    } catch (e) {
+                        if (e instanceof TypeError) {
+                            this.debug('Catch exception while executing message: %o\n%O', raw, e);
+                            throw "Bad syntax of message";
+                        }
+                        throw e;
+                    }
                 } else {
                     throw "Not supported type of message";
                 }
