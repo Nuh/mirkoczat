@@ -1,9 +1,8 @@
 const requestIp = require('request-ip');
 const requestInfo = require('request-info');
 const geoIp = require('geoip-lite');
-const EventEmitter2 = require('eventemitter2').EventEmitter2;
 
-class Session extends EventEmitter2 {
+class Session extends ctx('api.Observable') {
     constructor(ws, req, user) {
         if (!ws || !req || !user) {
             throw new TypeError("Nulled required arguments");
@@ -11,13 +10,26 @@ class Session extends EventEmitter2 {
 
         super();
 
-        this.websocket = ws;
-        this.request = req;
         this.user = user;
+        this.request = req;
+        this.websocket = ws;
+        this.channels = new Set();
+        this.created = new Date();
         this.lastActivity = new Date();
 
-        utils.proxy.eventWith(ws, this, 'message', (...args) => [this, _.once((msg) => this.send(msg)), ...args]);
-        utils.proxy.eventWith(ws, this, 'close', (...args) => [this, ...args]);
+        this.validate();
+
+        utils.proxy.eventWith(ws, this, 'message', (...args) => _.flattenDeep([this, _.once((msg) => this.send(msg)), ...args]));
+        utils.proxy.eventWith(ws, this, 'close', (...args) => _.flattenDeep([this, ...args]));
+
+        this.debug = Debug(`USER:${user.type.toUpperCase()}:${utils.extract.username(user)}:SESSION:${this.created.getTime()}`);
+        this.debug('Created a new session (IP: %s)', this.getClientInfo().prettyIp);
+    }
+
+    validate() {
+        if (!this.websocket || !this.request || !this.user instanceof ctx('api.users.AbstractUser')) {
+            throw "Invalid session"
+        }
     }
 
     isOnline() {
@@ -34,6 +46,31 @@ class Session extends EventEmitter2 {
             });
         }
         return this._clientInfo;
+    }
+
+    join(channel) {
+        if (channel && channel instanceof ctx('api.channels.AbstractChannel')) {
+            if (!this.channels.has(channel)) {
+                if (channel.join(this)) {
+                    this.channels.add(channel);
+                    this.debug('Join %o channel', channel.name);
+                } else {
+                    this.debug('Try to join %o channel but cannot', channel.name);
+                }
+            }
+            return this.channels.has(channel);
+        }
+    }
+
+    leave(channel, reason) {
+        if (channel && (typeof channel === 'string' || channel instanceof String)) {
+            channel = _.find([...this.channels], (ch) => ch && ch.name === channel);
+        }
+        if (channel && channel instanceof ctx('api.channels.AbstractChannel') && this.channels.has(channel)) {
+            this.debug('Leave %o channel because: %s', channel.name, reason || 'no reason');
+            this.channels.delete(channel);
+            return channel.left(this, reason);
+        }
     }
 
     send(message) {
@@ -62,6 +99,10 @@ class Session extends EventEmitter2 {
         } catch (e) {
             return false;
         }
+    }
+
+    toResponse() {
+        return utils.convert.toResponse(this.user);
     }
 }
 

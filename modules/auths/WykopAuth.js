@@ -11,11 +11,11 @@ let parseToken = (data) => {
     } catch (e) {
         throw 'Bad syntax of token'
     }
-}
+};
 
 class WykopAuth {
     constructor(parent) {
-        parent.context.config.require(WYKOP_KEY_PROPERTY, WYKOP_SECRET_PROPERTY)
+        parent.context.config.require(WYKOP_KEY_PROPERTY, WYKOP_SECRET_PROPERTY);
 
         this.config = {
             key: parent.context.property(WYKOP_KEY_PROPERTY),

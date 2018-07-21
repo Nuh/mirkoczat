@@ -35,9 +35,6 @@ class Channels {
             this.instances.add(channel);
             this.debug('Create a new channel %o by %s', name, user && user.username ? user.username : user || 'SYSTEM');
         }
-        if (user && user instanceof ctx('api.users.AbstractUser')) {
-            user.join(channel);
-        }
         return channel;
     }
 

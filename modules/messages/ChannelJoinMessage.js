@@ -8,10 +8,12 @@ class ChannelJoinMessage {
     }
 
     handle(msg) {
-        if (!msg.author.isOnline()) {
-            throw "User is offline";
+        let session = msg.source.session;
+        let channel = this.channels.register(msg.data.name, msg.source.user);
+        if (session && session instanceof ctx('api.Session')) {
+            session.join(channel);
         }
-        return this.channels.register(msg.data.name, msg.author);
+        return channel;
     }
 }
 

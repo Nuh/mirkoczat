@@ -8,19 +8,19 @@ class ChannelActionMessage {
     }
 
     handle(msg) {
-        if (!msg.author.isOnline()) {
-            throw "User is offline";
-        }
         let channel = this.channels.get(msg.data.channel);
         if (!channel) {
             throw "Unknown channel";
         }
+        if (!channel.sessions.has(msg.source.session)) {
+            throw "Session do not enter to channel";
+        }
         let action = {
-             channel: channel,
+             channel: channel.name,
              type: msg.data.type || 'message',
              message: msg.data.message
          };
-        return channel.send(new (ctx('api.messages.Action'))('channelaction', msg.author, action));
+        return channel.send(new (ctx('api.messages.Action'))('channelaction', msg.source.user, action));
     }
 }
 

@@ -1,6 +1,4 @@
-const EventEmitter2 = require('eventemitter2').EventEmitter2;
-
-class Action extends EventEmitter2 {
+class Action extends ctx('api.Observable') {
     constructor(type = null, author = null, data) {
         super();
 

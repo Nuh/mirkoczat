@@ -1,6 +1,4 @@
-const EventEmitter2 = require('eventemitter2').EventEmitter2;
-
-class AbstractUser extends EventEmitter2 {
+class AbstractUser extends ctx('api.Observable') {
     constructor(username, sex) {
         if (new.target === AbstractUser) {
             throw new TypeError("Cannot construct AbstractUser instances directly");
@@ -11,7 +9,6 @@ class AbstractUser extends EventEmitter2 {
         this.type = this.constructor.name.toLowerCase().replace(/user$/, '') || 'anonymous';
         this.debug = Debug(`USER:${this.type.toUpperCase()}:${username}`);
         this.sessions = new Set();
-        this.channels = new Set();
 
         this.username = username;
         this.sex = normalizeSex(sex);
@@ -44,34 +41,9 @@ class AbstractUser extends EventEmitter2 {
                 }
 
                 // Debug
-                this.debug('Registered a new session (IP: %s, all sessions: %d)', session.getClientInfo().prettyIp, currentSessions);
+                this.debug('Registered a new session %o (all sessions: %d)', session.created.getTime(), currentSessions);
             }
             return this.sessions.has(session);
-        }
-    }
-
-    join(channel) {
-        if (channel && channel instanceof ctx('api.channels.AbstractChannel')) {
-            if (!this.channels.has(channel)) {
-                if (channel.join(this)) {
-                    this.channels.add(channel);
-                    this.debug('Join %o channel', channel.name);
-                } else {
-                    this.debug('Try to join %o channel but cannot', channel.name);
-                }
-            }
-            return this.channels.has(channel);
-        }
-    }
-
-    leave(channel, reason) {
-        if (channel && (typeof channel === 'string' || channel instanceof String)) {
-            channel = _.find([...this.channels], (ch) => ch && ch.name === channel);
-        }
-        if (channel && channel instanceof ctx('api.channels.AbstractChannel') && this.channels.has(channel)) {
-            this.debug('Leave %o channel because: %s', channel.name, reason || 'no reason');
-            this.channels.delete(channel);
-            return channel.left(this, reason);
         }
     }
 
@@ -79,6 +51,17 @@ class AbstractUser extends EventEmitter2 {
         return _.some(proxy(this.sessions, 'isOnline'));
     }
 
+    getChannels() {
+        return _(this.sessions).map((s) => s.channels).flattenDeep().sort().uniq().value();
+    }
+
+    join(channel) {
+        return proxy(this.sessions, 'join', ...arguments);
+    }
+
+    leave(channel, reason) {
+        return proxy(this.sessions, 'leave', ...arguments);
+    }
     send(message) {
         return proxy(this.sessions, 'send', ...arguments);
     }
@@ -117,7 +100,7 @@ let bindEvents = (user, session) => {
         return;
     }
 
-    session.once('close', (code, reason) => {
+    session.once('close', (session, code, reason) => {
         session.removeAllListeners();
         session.terminate();
         if (user.sessions.has(session)) {
@@ -126,7 +109,7 @@ let bindEvents = (user, session) => {
 
             // Events
             if (currentSessions <= 0) {
-                _.each([...user.channels], (ch) => user.leave(ch, reason));
+                _.each([...session.channels], (ch) => session.leave(ch, reason));
                 user.emit('offline', user);
             }
 

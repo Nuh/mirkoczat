@@ -30,25 +30,26 @@ class Message extends ctx('api.modularize.AbstractStrategized') {
         let response = null;
 
         try {
+            if (!session.isOnline()) {
+                throw "Session is offline";
+            }
+
             req = this.parse(raw, user, session);
             if (req && req instanceof ctx('api.messages.Request')) {
                 let strategy = this.getStrategy(req.type);
                 if (strategy) {
-                    try {
-                        response = strategy.handle(req);
-                    } catch (e) {
-                        if (e instanceof TypeError) {
-                            this.debug('Catch exception while executing message: %o\n%O', raw, e);
-                            throw "Bad syntax of message";
-                        }
-                        throw e;
-                    }
+                    response = strategy.handle(req);
                 } else {
                     throw "Not supported type of message";
                 }
             }
         } catch(e) {
-            response = e;
+            if (e instanceof TypeError) {
+                this.debug('Catch exception while executing message: %o\n%O', raw, e);
+                response = "Bad syntax of message";
+            } else {
+                response = e;
+            }
             result = false;
         }
 

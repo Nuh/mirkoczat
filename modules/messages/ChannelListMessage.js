@@ -8,10 +8,7 @@ class ChannelListMessage {
     }
 
     handle(msg) {
-        if (!msg.author.isOnline()) {
-            throw "User is offline";
-        }
-        return this.channels.getAllCanJoin(msg.author);
+        return this.channels.getAllCanJoin(msg.source.user);
     }
 }
 

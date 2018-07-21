@@ -1,6 +1,6 @@
 class MyChannelsMessage {
     handle(msg) {
-        return (msg.author || {}).channels;
+        return (msg.source.user || {}).channels;
     }
 }
 

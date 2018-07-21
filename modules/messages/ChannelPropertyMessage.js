@@ -8,9 +8,6 @@ class ChannelPropertyMessage {
     }
 
     handle(msg) {
-        if (!msg.author.isOnline()) {
-            throw "User is offline";
-        }
         let channel = this.channels.get(msg.data.channel);
         if (!channel) {
             throw "Unknown channel";
@@ -18,7 +15,7 @@ class ChannelPropertyMessage {
         if (!msg.data.key || !channel.hasProperty(msg.data.key)) {
             throw "Unknown property";
         }
-        return channel.setProperty(msg.data.key, msg.data.value, msg.author);
+        return channel.setProperty(msg.data.key, msg.data.value, msg.source.user);
     }
 }
 

@@ -1,6 +1,4 @@
-const EventEmitter2 = require('eventemitter2').EventEmitter2;
-
-class AbstractChannel extends EventEmitter2 {
+class AbstractChannel extends ctx('api.Observable') {
     constructor(name, user) {
         if (new.target === AbstractChannel) {
             throw new TypeError("Cannot construct AbstractChannel instances directly");
@@ -11,6 +9,7 @@ class AbstractChannel extends EventEmitter2 {
         this.type = this.constructor.name.toLowerCase().replace(/channel$/, '') || 'global';
         this.debug = Debug(`CHANNEL:${this.type.toUpperCase()}:${name}`);
         this.users = new Set();
+        this.sessions = new Set();
 
         this.name = name;
         this.owner = user;
@@ -61,37 +60,39 @@ class AbstractChannel extends EventEmitter2 {
     }
 
     send(action) {
-        return proxy(this.users, 'send', action);
+        return proxy(this.sessions, 'send', action);
+    }
+
+    isOnline(user) {
+        return _([...this.sessions]).filter((s) => s.user.equals(user) && s.isOnline()).some();
     }
 
     canJoin(user) {
         return !!user;
     }
 
-    join(user) {
-        if (user && user instanceof String) {
-            user = _.find(this.users, (u) => u.username === user);
-        }
-        if (user && user instanceof ctx('api.users.AbstractUser')) {
-            if (!this.users.has(user) && this.canJoin(user)) {
-                this.send(new (ctx('api.messages.Action'))('channeljoin', user, {name: this.name}));
-                this.users.add(user);
-                this.debug('User %o joined channel', user.username);
+    join(session) {
+        if (session && session instanceof ctx('api.Session') && session.user && session.user instanceof ctx('api.users.AbstractUser')) {
+            if (!this.users.has(session.user) && this.canJoin(session.user)) {
+                this.send(new (ctx('api.messages.Action'))('channeljoin', session.user, {name: this.name}));
+                this.users.add(session.user);
+                this.debug('User %o joined channel', utils.extract.username(session));
             }
-            return this.users.has(user);
+            if (!this.sessions.has(session)) {
+                this.sessions.add(session);
+            }
+            return this.sessions.has(session);
         }
     }
 
-    left(user, reason) {
-        if (user && user instanceof String) {
-            user = _.find(this.users, (u) => u.username === user);
-        }
-        if (user && user instanceof ctx('api.users.AbstractUser')) {
-            if (this.users.delete(user)) {
-                this.send(new (ctx('api.messages.Action'))('channelleave', user, {name: this.name}));
-                this.debug('User %o left channel because: %s', user.username, reason || 'no reason');
-                return true;
+    left(session, reason) {
+        if (session && session instanceof ctx('api.Session') && session.user && session.user instanceof ctx('api.users.AbstractUser')) {
+            this.sessions.delete(session);
+            if (!this.isOnline(session.user) && this.users.delete(session.user)) {
+                this.send(new (ctx('api.messages.Action'))('channelleave', session.user, {name: this.name}));
+                this.debug('User %o left channel because: %s', utils.extract.username(session), reason || 'no reason');
             }
+            return !this.sessions.has(session);
         }
     }
 
@@ -115,6 +116,10 @@ class AbstractChannel extends EventEmitter2 {
 
     equals(other) {
         return this === other || (other && this.construct === other.construct && this.name === other.name);
+    }
+
+    toResponse() {
+        return utils.convert.toResponse(_.omit(this, ['sessions']), true);
     }
 }
 
