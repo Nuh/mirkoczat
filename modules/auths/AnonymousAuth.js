@@ -23,6 +23,12 @@ class AnonymousAuth {
         throw 'No available nickname to enter'
     }
 
+    async login(response, params) {
+        if (params && params.redirect) {
+            response.writeHead(301, 'OK', {Location: params.redirect});
+        }
+    }
+
 }
 
 module.exports = AnonymousAuth;

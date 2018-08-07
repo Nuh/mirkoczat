@@ -48,6 +48,11 @@ class WykopAuth {
         throw 'Invalid token';
     }
 
+    async login(response, params) {
+        let redirect = (params || {}).redirect;
+        response.writeHead(301, 'OK', {Location: `https://a.wykop.pl/user/connect/appkey,${this.config.key}${redirect ? `,redirect,${Buffer.from(redirect).toString('base64')},secure,${md5(`${this.config.secret}${redirect}`, 'hex').toString()}` : ''}`});
+    }
+
 }
 
 module.exports = WykopAuth;

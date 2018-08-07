@@ -24,10 +24,9 @@ class WebSocketInterface {
 
     configureServer() {
         if (!this.server.socket) {
-            this.server.socket = new WebSocket.Server({
-                host: '0.0.0.0',
-                port: 8080,
-                backlog: 128,
+            let httpServer = this.context.getModule('interface').getStrategy('http').server;
+            let wsServer = this.server.socket = new WebSocket.Server({
+                noServer: true,
                 maxPayload: 4096,
                 clientTracking: true,
                 perMessageDeflate: {
@@ -70,6 +69,10 @@ class WebSocketInterface {
                     return badCredentials(callback);
                 }
             });
+
+            httpServer.on('upgrade', (req, res, headers) => {
+                wsServer.handleUpgrade(req, res, headers, (ws) => wsServer.emit('connection', ws, req));
+            });
         }
         return this.server.socket;
     }
@@ -84,7 +87,7 @@ class WebSocketInterface {
             } catch (e) {
                 try {
                     ws.terminate();
-                } catch(e) {
+                } catch (e) {
                     // ignore
                 }
 
