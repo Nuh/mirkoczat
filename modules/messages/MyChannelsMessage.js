@@ -1,6 +1,6 @@
 class MyChannelsMessage {
     handle(msg) {
-        return (msg.source.user || {}).channels;
+        return (msg.source.session || {}).channels;
     }
 }
 

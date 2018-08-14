@@ -8,7 +8,12 @@ class ChannelListMessage {
     }
 
     handle(msg) {
-        return this.channels.getAllCanJoin(msg.source.user);
+        let channels = _.clone(this.channels.getAllCanJoin(msg.source.user));
+        return _(channels).filter((ch) => _.size(ch.users)).map((ch) => {
+            let channel = _.pick(_.clone(ch), ['name', 'type', 'users', 'created']);
+            channel.users = _.size(channel.users);
+            return channel;
+        });
     }
 }
 

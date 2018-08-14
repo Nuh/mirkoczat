@@ -55,7 +55,7 @@ class WebSocketInterface {
 
                     try {
                         let params = new url.URLSearchParams(url.parse(info.req.url).search);
-                        let strategy = params.get('auth') || params.get('provider') || 'anonymous';
+                        let strategy = params.get('strategy') || params.get('auth') || params.get('provider') || 'anonymous';
                         let token = params.get('token') || params.get('nick');
                         let user = await this.auth.authorize(strategy, token);
                         if (user) {

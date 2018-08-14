@@ -11,7 +11,7 @@ class AbstractChannel extends ctx('api.Observable') {
         this.users = new Set();
         this.sessions = new Set();
 
-        this.name = name;
+        this.name = (name || '');
         this.owner = user;
         this.properties = {
             topic: '',
@@ -25,8 +25,8 @@ class AbstractChannel extends ctx('api.Observable') {
     }
 
     validate() {
-        if (!/^[A-Za-z0-9-_]{3,}$/.test(this.name)) {
-            throw 'Channel name should have only "A-Za-z0-9-_" chars and minimum 3 length'
+        if (!/^[A-Za-z]([A-Za-z0-9\-_]){2,34}$/.test(this.name)) {
+            throw 'Channel name should have only basic chars and length between 3 and 35'
         }
         return true;
     }
@@ -115,7 +115,7 @@ class AbstractChannel extends ctx('api.Observable') {
     }
 
     equals(other) {
-        return this === other || (other && this.construct === other.construct && this.name === other.name);
+        return this === other || (other && this.construct === other.construct && this.name.toLowerCase() === other.name.toLowerCase());
     }
 
     toResponse() {

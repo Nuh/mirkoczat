@@ -8,18 +8,18 @@ class Channels {
 
     get(channel) {
         if (channel instanceof ctx('api.channels.AbstractChannel')) {
-            return _([...this.instances]).find((i) => i.equals(channel));
+            return _([...this.instances]).find((i) => i && i.equals(channel));
         }
-        let name = channel && channel.name ? channel.name : channel;
-        return _([...this.instances]).find((i) => i.name === name) || null;
+        let name = (channel && channel.name ? channel.name : channel).toString().toLowerCase();
+        return _([...this.instances]).find((i) => i && i.name.toLowerCase() === name) || null;
     }
 
     getOfTypes(type) {
-        return _([...this.instances]).filter((i) => i.type === type) || [];
+        return _([...this.instances]).filter((i) => i && i.type === type).value() || [];
     }
 
     getAllCanJoin(user) {
-        return _([...this.instances]).filter((i) => i.canJoin(user)) || [];
+        return _([...this.instances]).filter((i) => i && i.canJoin && i.canJoin(user)).value() || [];
     }
 
     has(channel) {

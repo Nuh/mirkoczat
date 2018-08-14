@@ -79,7 +79,16 @@ class Session extends ctx('api.Observable') {
             if (message instanceof Object) {
                 message = JSON.stringify(message);
             }
-            return proxy(this.websocket)('send', message) || true;
+            try {
+                return proxy(this.websocket)('send', message) || true;
+            } catch (e) {
+                if (!this.isOnline()) {
+                    this.terminate();
+                    this.emit('close');
+                } else {
+                    this.debug('Catched error when sending a message: %s\n', message, e);
+                }
+            }
         }
         return false;
     }
