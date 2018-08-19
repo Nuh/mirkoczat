@@ -101,9 +101,7 @@ let bindEvents = (user, session) => {
         return;
     }
 
-    session.once('close', (session, code, reason) => {
-        session.removeAllListeners();
-        session.terminate();
+    session.once('close', (_ignored_, code, reason) => {
         if (user.sessions.has(session)) {
             user.sessions.delete(session);
             let currentSessions = user.sessions.size;
@@ -117,6 +115,8 @@ let bindEvents = (user, session) => {
             // Debug
             user.debug('Unregister a closed session, reason: %s (%d), remaining sessions: %d', reason || 'no reason', code, currentSessions);
         }
+        session.removeAllListeners();
+        session.terminate();
     });
 
     utils.proxy.event(session, user, 'message', 'close');
