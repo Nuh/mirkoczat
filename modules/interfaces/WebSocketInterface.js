@@ -27,9 +27,10 @@ class WebSocketInterface {
             let httpServer = this.context.getModule('interface').getStrategy('http').server;
             let wsServer = this.server.socket = new WebSocket.Server({
                 noServer: true,
-                maxPayload: 4096,
                 clientTracking: true,
+                maxPayload: 4096,
                 perMessageDeflate: {
+                    threshold: 1024,
                     zlibDeflateOptions: {
                         chunkSize: 1024,
                         memLevel: 7,
@@ -37,11 +38,7 @@ class WebSocketInterface {
                     },
                     zlibInflateOptions: {
                         chunkSize: 10 * 1024
-                    },
-                    clientNoContextTakeover: true,
-                    serverNoContextTakeover: true,
-                    clientMaxWindowBits: 10,
-                    serverMaxWindowBits: 10
+                    }
                 },
                 verifyClient: async (info, callback) => {
                     let callbackCallerFactory = (code, message) => (callback) => typeof callback === 'function' ? callback(false, code, message, {'Retry-After': 300}) && false : false
