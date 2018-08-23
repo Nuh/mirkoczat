@@ -101,6 +101,11 @@ let bindEvents = (user, session) => {
         return;
     }
 
+    session.once('error', (_ignored_, e) => {
+        user.debug('Error handled - terminate session:\n%O', e);
+        session.terminate();
+    });
+
     session.once('close', (_ignored_, code, reason) => {
         if (user.sessions.has(session)) {
             user.sessions.delete(session);

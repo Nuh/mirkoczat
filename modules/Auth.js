@@ -1,6 +1,7 @@
 const Url = require('url');
 
 const MODULES_PATH = `${__dirname}/auths`;
+const ENABLED_STRATEGIES_KEY_PROPERTY = 'auth:strategies';
 const ALLOWED_REDIRECT_KEY_PROPERTY = 'auth:redirect:allowed';
 const DEFAULT_REDIRECT_KEY_PROPERTY = 'auth:redirect:default';
 
@@ -9,7 +10,7 @@ class Auth extends ctx('api.modularize.AbstractStrategized') {
     constructor(context) {
         super('AUTH', MODULES_PATH);
         this.context = context;
-        this.loadModules();
+        this.loadModules(this.context.property(ENABLED_STRATEGIES_KEY_PROPERTY, ['all']));
     }
 
     dependency() {

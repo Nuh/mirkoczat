@@ -21,6 +21,7 @@ class Session extends ctx('api.Observable') {
 
         utils.proxy.eventWith(ws, this, 'message', (...args) => _.flattenDeep([this, _.once((msg) => this.send(msg)), ...args]));
         utils.proxy.eventWith(ws, this, 'close', (...args) => _.flattenDeep([this, ...args]));
+        utils.proxy.eventWith(ws, this, 'error', (...args) => _.flattenDeep([this, ...args]));
 
         this.debug = Debug(`USER:${user.type.toUpperCase()}:${utils.extract.username(user)}:SESSION:${this.created.getTime()}`);
         this.debug('Created a new session (IP: %s)', this.getClientInfo().prettyIp);

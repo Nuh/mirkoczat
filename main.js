@@ -9,17 +9,11 @@ class Mirkoczat extends ctx('api.modularize.AbstractModularized') {
     constructor(config) {
         super('CORE', 'modules');
 
-        let modules = _(config.get('modules', ['all']))
-                                .castArray()
-                                .flattenDeep()
-                                .map(_.toLower)
-                                .value();
-
         this.db = require('./lib/services/db');
         this.queue = require('./lib/services/queue');
         this.config = config;
 
-        this.loadModules(modules);
+        this.loadModules(config.get('modules', ['all']));
     }
 
     bus(/*...*/) {

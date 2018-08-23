@@ -76,7 +76,7 @@ class WebSocketInterface {
 
     run() {
         let wss = this.configureServer();
-        wss.on('connection', (ws, req) => {
+        wss.on('connection', async (ws, req) => {
             try {
                 let user = req.connection.authorize;
                 let session = new (ctx('api.Session'))(ws, req, user);

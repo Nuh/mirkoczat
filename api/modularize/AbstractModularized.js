@@ -58,7 +58,7 @@ class AbstractModularized {
         try {
             require.resolve(module.path);
             return true;
-        } catch(e) {
+        } catch (e) {
             this.debug('No found module: %o', (module || {}).name || 'unknown');
         }
         return false;
@@ -118,7 +118,7 @@ class AbstractModularized {
 
     loadModules(...names) {
         let availableModules = this.availableModules();
-        let wantedModules = _(names.length ? names : 'all').castArray().flattenDeep().map(_.toLower).value();
+        let wantedModules = _(names && names.length ? names : ['all']).flattenDeep().map(_.toLower).compact().value();
         let modules = _.includes(wantedModules, 'all') ? _.keys(availableModules) : wantedModules;
 
         // Loading modules
@@ -127,7 +127,7 @@ class AbstractModularized {
         }
 
         // Debug info
-        let diff = _.without.apply(_, [availableModules].concat(modules))
+        let diff = _.without.apply(_, [availableModules].concat(modules));
         if (_.size(diff)) {
             this.debug('Disabled modules: %o', diff)
         }
@@ -135,14 +135,19 @@ class AbstractModularized {
 
     availableModules() {
         return _(this.options.paths)
-                    .map((path) => _.values(utils.modules.find(path)))
-                    .flattenDeep().sort().uniqBy('name').keyBy('name').value()
+            .map((path) => _.values(utils.modules.find(path)))
+            .flattenDeep()
+            .sort()
+            .uniqBy('name')
+            .keyBy('name')
+            .mapKeys((value, name) => _.toLower(name))
+            .value()
     }
 
     checkDependency() {
         for (let name in this.modules) {
             let deps = _(this.execute(name, 'dependency')).values().castArray().compact()
-                            .groupBy((v) => this.isLoadedModule.call(this, v)).value();
+                .groupBy((v) => this.isLoadedModule.call(this, v)).value();
             if (!_.isEmpty(deps['false'])) {
                 this.debug('Error! Dependency is not met for %o - required %o modules!', name, deps['false']);
                 return false;
