@@ -1,5 +1,5 @@
 class AbstractUser extends ctx('api.Observable') {
-    constructor(username, avatar, sex) {
+    constructor(username, avatar, fullAvatar, sex) {
         if (new.target === AbstractUser) {
             throw new TypeError("Cannot construct AbstractUser instances directly");
         }
@@ -12,6 +12,7 @@ class AbstractUser extends ctx('api.Observable') {
 
         this.username = username;
         this.avatar = avatar;
+        this.fullAvatar = fullAvatar;
         this.sex = normalizeSex(sex);
     }
 

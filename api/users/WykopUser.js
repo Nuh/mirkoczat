@@ -1,7 +1,7 @@
 class WykopUser extends ctx('api.users.AbstractUser') {
 
     constructor(data) {
-        super(data.login, data.avatar_lo, data.sex);
+        super(data.login, data.avatar_lo, data.avatar_big, data.sex);
         this.data = data;
     }
 
