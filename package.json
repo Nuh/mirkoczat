@@ -1,13 +1,20 @@
 {
-  "name": "mikroczat",
-  "version": "0.0.1",
-  "description": "Mikroczat - a dedicated server of websocket chat for Wykop.pl users",
-  "main": "main.js",
+  "name": "MikroCzat",
+  "version": "1.0.0-alpha.0",
+  "description": "MikroCzat - a dedicated server of websocket chat for Wykop.pl users",
+  "author": "BosmanPociagowy from wykop.pl <admin@mikroczat.pl>",
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true,
+  "main": "target/index.js",
+  "module": "src/main.js",
   "bin": {
-    "mirkoczat": "./main.js"
+    "mikroczat": "./target/main.js"
   },
   "dependencies": {
+    "@babel/plugin-proposal-pipeline-operator": "^7.0.0",
+    "@babel/polyfill": "^7.0.0",
     "async-polling": "^0.2.1",
+    "bluebird": "^3.5.1",
     "cluster": "^0.7.7",
     "cron": "^1.3.0",
     "crypto-js": "^3.1.9-1",
@@ -31,16 +38,142 @@
     "wykop-api-client": "^1.0.3",
     "yargs": "^11.0.0"
   },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "BosmanPociagowy <patostrimy@gmail.com>",
-  "license": "UNLICENSED",
-  "private": true,
   "optionalDependencies": {
     "debug": "^3.1.0",
     "supports-color": "^5.4.0",
     "bufferutil": "^3.0.5"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/node": "^7.0.0",
+    "@babel/plugin-proposal-async-generator-functions": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
+    "@babel/plugin-proposal-decorators": "^7.0.0",
+    "@babel/plugin-proposal-do-expressions": "^7.0.0",
+    "@babel/plugin-proposal-export-default-from": "^7.0.0",
+    "@babel/plugin-proposal-export-namespace-from": "^7.0.0",
+    "@babel/plugin-proposal-function-bind": "^7.0.0",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.0.0",
+    "@babel/plugin-proposal-numeric-separator": "^7.0.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
+    "@babel/plugin-proposal-optional-chaining": "^7.0.0",
+    "@babel/plugin-transform-arrow-functions": "^7.0.0",
+    "@babel/plugin-transform-async-to-generator": "^7.0.0",
+    "@babel/plugin-transform-block-scoped-functions": "^7.0.0",
+    "@babel/plugin-transform-computed-properties": "^7.0.0",
+    "@babel/plugin-transform-destructuring": "^7.0.0",
+    "@babel/plugin-transform-duplicate-keys": "^7.0.0",
+    "@babel/plugin-transform-for-of": "^7.0.0",
+    "@babel/plugin-transform-instanceof": "^7.0.0",
+    "@babel/plugin-transform-literals": "^7.0.0",
+    "@babel/plugin-transform-new-target": "^7.0.0",
+    "@babel/plugin-transform-parameters": "^7.0.0",
+    "@babel/plugin-transform-property-mutators": "^7.0.0",
+    "@babel/plugin-transform-reserved-words": "^7.0.0",
+    "@babel/plugin-transform-shorthand-properties": "^7.0.0",
+    "@babel/plugin-transform-spread": "^7.0.0",
+    "@babel/plugin-transform-typeof-symbol": "^7.0.0",
+    "@babel/plugin-transform-unicode-regex": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "babel-plugin-remove-comments": "^2.0.0",
+    "babel-plugin-transform-member-expression-literals": "^6.9.4",
+    "babel-preset-minify": "^0.4.3",
+    "cross-env": "^5.2.0",
+    "nodemon": "^1.18.4",
+    "rimraf": "^2.6.2"
+  },
+  "scripts": {
+    "babel-node": "babel-node",
+    "clean": "rimraf build",
+    "start": "cross-env DEBUG=*,-follow-redirects,-babel,-babel:* TZ=UTC babel-node -- ./src/cli.js",
+    "build": "cross-env NODE_ENV=production babel src -d build",
+    "watch": "cross-env DEBUG=*,-follow-redirects,-snapdragon:*,-nodemon,-nodemon:*,-babel,-babel:* TZ=UTC nodemon --inspect --exec npm run babel-node -- ./src/cli.js",
+    "prepack": "npm run clean && npm run build"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "**/src/**",
+      "**/package.json"
+    ],
+    "ignore": [
+      "**/build/**",
+      "db.json",
+      "mikroczat.config",
+      "**/*___jb_tmp___"
+    ],
+    "delay": "2500",
+    "verbose": true
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/env",
+        {
+          "targets": {
+            "node": "8.10"
+          },
+          "useBuiltIns": "usage"
+        }
+      ],
+      "minify"
+    ],
+    "plugins": [
+      [
+        "@babel/plugin-transform-arrow-functions",
+        {
+          "spec": true
+        }
+      ],
+      "@babel/plugin-transform-block-scoped-functions",
+      "@babel/plugin-transform-computed-properties",
+      [
+        "@babel/plugin-transform-destructuring",
+        {
+          "useBuiltIns": true
+        }
+      ],
+      "@babel/plugin-transform-duplicate-keys",
+      [
+        "@babel/plugin-transform-for-of",
+        {
+          "assumeArray": true
+        }
+      ],
+      "@babel/plugin-transform-instanceof",
+      "@babel/plugin-transform-literals",
+      "@babel/plugin-transform-new-target",
+      "@babel/plugin-transform-parameters",
+      "@babel/plugin-transform-property-mutators",
+      "@babel/plugin-transform-reserved-words",
+      "@babel/plugin-transform-shorthand-properties",
+      "@babel/plugin-transform-spread",
+      "@babel/plugin-transform-typeof-symbol",
+      "@babel/plugin-transform-unicode-regex",
+      [
+        "@babel/plugin-proposal-decorators",
+        {
+          "legacy": true
+        }
+      ],
+      "@babel/plugin-proposal-do-expressions",
+      "@babel/plugin-proposal-class-properties",
+      "@babel/plugin-proposal-export-default-from",
+      "@babel/plugin-proposal-export-namespace-from",
+      "@babel/plugin-proposal-function-bind",
+      "@babel/plugin-proposal-object-rest-spread",
+      [
+        "@babel/plugin-proposal-pipeline-operator",
+        {
+          "proposal": "minimal"
+        }
+      ],
+      "@babel/plugin-proposal-optional-catch-binding",
+      "@babel/plugin-proposal-optional-chaining",
+      "@babel/plugin-proposal-nullish-coalescing-operator",
+      "@babel/plugin-proposal-numeric-separator",
+      "transform-member-expression-literals",
+      "remove-comments"
+    ]
   }
 }

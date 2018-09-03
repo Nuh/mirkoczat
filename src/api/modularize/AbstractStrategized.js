@@ -1,10 +1,11 @@
 class AbstractStrategized extends ctx('api.modularize.AbstractModularized') {
     constructor(name, ...paths) {
+        super(name, ...paths);
+
         if (new.target === AbstractStrategized) {
             throw new TypeError("Cannot construct AbstractStrategized instances directly");
         }
 
-        super(name, ...paths);
         this.name = name;
     }
 

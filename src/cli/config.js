@@ -2,7 +2,7 @@ const debug = Debug('CONFIG');
 const nconf = require('nconf');
 
 class Config {
-    constructor(defaults = {}, file = 'mirkoczat.config') {
+    constructor(defaults = {}, file = 'mikroczat.config') {
         this.file = file;
         this.defaults = defaults;
         this.loaded = false;
@@ -36,13 +36,7 @@ class Config {
                             requiresArg: true,
                             normalize: true,
                             default: this.file
-                        },
-                        "t": {
-                            alias: 'token',
-                            describe: 'User Token API to connect with Discord',
-                            type: 'string',
-                            requiresArg: true
-                         }
+                        }
                     })
                     .help())
              .env();
@@ -51,7 +45,7 @@ class Config {
              .defaults(this.defaults || {});
 
         this.loaded = true;
-        this.require('token');
+        this.require('config');
         handleExit();
         return this;
     }

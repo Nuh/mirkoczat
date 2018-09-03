@@ -1,0 +1,7 @@
+.idea/
+src/
+logs/
+node_modules/
+db.json
+mikroczat.config
+*.tgz
