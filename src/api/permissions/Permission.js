@@ -17,15 +17,8 @@ class Permission {
         return false;
     }
 
-    merge(other) {
-        if (this !== other && this.equals(other)) {
-            for (let session of other.sessions) {
-                this.sessions.add(session);
-            }
-
-            this.sex = other.sex;
-        }
-        return this;
+    can() {
+        return true;
     }
 
     equals(other) {

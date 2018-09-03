@@ -3,24 +3,23 @@ global.CronJob = require('cron').CronJob;
 global.Debug = require('debug');
 global.Random = require('seedrandom');
 
-const rnd = new Random.xor4096(null, {global: true, entropy: true});
+import Config from './api/config'
 
-const Config = require('./cli/config');
-const Mirkoczat = require('./main');
+// const rnd = new Random.xor4096(null, {global: true, entropy: true});
+//
+// const Mirkoczat = require('./main');
 
 // Prepare configuration module
-let config = new Config({
-    host: "0.0.0.0",
-    port: "8080"
-});
+let config = new Config({ddd: 'tre'});
+console.log(config);
 
 // Initialize application
-let bot = new Mirkoczat(config)
-if (!bot.run()) {
-    process.exit(1);
-}
-
-// User Input loop
-;(function wait() {
-   setTimeout(wait, 1000);
-})();
+// let bot = new Mirkoczat(config)
+// if (!bot.run()) {
+//     process.exit(1);
+// }
+//
+// // User Input loop
+// ;(function wait() {
+//    setTimeout(wait, 1000);
+// })();
