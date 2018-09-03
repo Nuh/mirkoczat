@@ -1,10 +1,10 @@
 class AbstractUser extends ctx('api.Observable') {
     constructor(username, avatar, fullAvatar, sex) {
+        super();
+
         if (new.target === AbstractUser) {
             throw new TypeError("Cannot construct AbstractUser instances directly");
         }
-
-        super();
 
         this.type = this.constructor.name.toLowerCase().replace(/user$/, '') || 'anonymous';
         this.debug = Debug(`USER:${this.type.toUpperCase()}:${username}`);

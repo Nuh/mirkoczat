@@ -1,10 +1,10 @@
 class AbstractChannel extends ctx('api.Observable') {
     constructor(name, user) {
+        super();
+
         if (new.target === AbstractChannel) {
             throw new TypeError("Cannot construct AbstractChannel instances directly");
         }
-
-        super();
 
         this.type = this.constructor.name.toLowerCase().replace(/channel$/, '') || 'global';
         this.debug = Debug(`CHANNEL:${this.type.toUpperCase()}:${name}`);

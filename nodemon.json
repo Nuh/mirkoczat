@@ -1,0 +1,15 @@
+{
+  "watch": [
+    "**/src/**",
+    "**/.babelrc",
+    "**/package.json"
+  ],
+  "ignore": [
+    "**/*___jb_tmp___",
+    "**/build/**",
+    "*.config",
+    "db.json"
+  ],
+  "delay": "2500",
+  "verbose": true
+}

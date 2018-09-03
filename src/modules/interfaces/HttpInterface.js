@@ -9,15 +9,11 @@ class HttpInterface {
     }
 
     run() {
-        this.server.listen(
-            {
-                host: '0.0.0.0',
-                port: 8080,
-                backlog: 128
-            }, () => {
-                this.debug('Server running on :8080');
-            }
-        );
+        this.server.listen({
+            host: '0.0.0.0',
+            port: 8080,
+            backlog: 128
+        }, () => this.debug('Server running on :8080'));
     }
 }
 

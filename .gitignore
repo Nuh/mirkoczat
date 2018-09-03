@@ -1,4 +1,3 @@
-
 # Created by https://www.gitignore.io/api/git,vim,node,nanoc,macos,linux,eclipse,windows,intellij,tortoisegit
 
 ### Eclipse ###
@@ -263,7 +262,7 @@ $RECYCLE.BIN/
 # End of https://www.gitignore.io/api/git,vim,node,nanoc,macos,linux,eclipse,windows,intellij,tortoisegit
 
 # Application files
-build/
+*.config
 db.json
-mikroczat.config
-mirkoczat-*.tgz
+MikroCzat-*.tgz
+build/

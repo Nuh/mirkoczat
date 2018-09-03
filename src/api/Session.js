@@ -4,11 +4,11 @@ const geoIp = require('geoip-lite');
 
 class Session extends ctx('api.Observable') {
     constructor(ws, req, user) {
+        super();
+
         if (!ws || !req || !user) {
             throw new TypeError("Nulled required arguments");
         }
-
-        super();
 
         this.user = user;
         this.request = req;

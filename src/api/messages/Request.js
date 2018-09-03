@@ -1,8 +1,8 @@
 class Request extends ctx('api.Observable') {
     constructor(raw = null, user = null, session = null) {
-        let json = JSON.parse(raw);
-
         super();
+
+        let json = JSON.parse(raw);
         this.id = json.id || json.correlationId || json.correlation;
         this.raw = raw;
         this.type = json.type || 'unknown';
