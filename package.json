@@ -8,10 +8,10 @@
   "main": "target/index.js",
   "module": "src/main.js",
   "bin": {
-    "mikroczat": "./target/main.js"
+    "mikroczat": "./target/cli.js",
+    "mikroczat-watchdog": "./target/watchdog.js"
   },
   "dependencies": {
-    "@babel/plugin-proposal-pipeline-operator": "^7.0.0",
     "@babel/polyfill": "^7.0.0",
     "async-polling": "^0.2.1",
     "bluebird": "^3.5.1",
@@ -86,9 +86,10 @@
   "scripts": {
     "babel-node": "babel-node",
     "clean": "rimraf build",
-    "start": "cross-env DEBUG=*,-follow-redirects,-babel,-babel:* TZ=UTC babel-node -- ./src/cli.js",
-    "build": "cross-env NODE_ENV=production babel src -d build",
-    "watch": "cross-env DEBUG=*,-follow-redirects,-snapdragon:*,-nodemon,-nodemon:*,-babel,-babel:* TZ=UTC nodemon --inspect --exec npm run babel-node -- ./src/cli.js",
+    "start": "cross-env TZ=UTC DEBUG=*,-follow-redirects node ./build/cli",
+    "build": "cross-env TZ=UTC NODE_ENV=production babel src -d build",
+    "debug": "cross-env TZ=UTC DEBUG=*,-follow-redirects,-babel,-babel:* babel-node -- ./src/cli.js",
+    "watch": "cross-env TZ=UTC DEBUG=*,-follow-redirects,-snapdragon:*,-nodemon,-nodemon:*,-babel,-babel:* nodemon --inspect --exec npm run babel-node -- ./src/cli.js",
     "prepack": "npm run clean && npm run build"
   },
   "nodemonConfig": {
