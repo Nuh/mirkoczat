@@ -1,13 +1,19 @@
-class ChannelLeaveMessage {
-    constructor(parent) {
-        this.context = parent.context;
-    }
-
+class ChannelLeaveMessage extends ctx('api.channels.message.AbstractMessage') {
     prepare() {
         this.channels = this.context.getModule('channels');
     }
 
-    handle(msg) {
+    doValidate(msg) {
+        let channel = this.channels.get(msg.data.channel);
+        if (!channel) {
+            throw "Unknown channel";
+        }
+        if (!channel.sessions.has(msg.source.session)) {
+            throw "Session do not enter to channel";
+        }
+    }
+
+    doHandle(msg) {
         let session = msg.source.session;
         let channel = this.channels.get(msg.data.name, msg.source.user);
         if (!session.leave(msg.data.name, msg.data.reason)) {

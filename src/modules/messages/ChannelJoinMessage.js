@@ -1,18 +1,19 @@
-class ChannelJoinMessage {
-    constructor(parent) {
-        this.context = parent.context;
-    }
-
+class ChannelJoinMessage extends ctx('api.channels.message.AbstractMessage') {
     prepare() {
         this.channels = this.context.getModule('channels');
     }
 
-    handle(msg) {
+    doValidate(msg) {
+        let channel = this.channels.get(msg.data.channel);
+        if (channel.sessions.has(msg.source.session)) {
+            throw "Session has entered to channel";
+        }
+    }
+
+    doHandle(msg) {
         let session = msg.source.session;
         let channel = this.channels.register(msg.data.name, msg.source.user);
-        if (session && session instanceof ctx('api.Session')) {
-            session.join(channel);
-        }
+        session.join(channel);
         return channel;
     }
 }

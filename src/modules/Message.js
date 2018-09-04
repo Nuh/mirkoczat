@@ -38,12 +38,16 @@ class Message extends ctx('api.modularize.AbstractStrategized') {
             if (req && req instanceof ctx('api.messages.Request')) {
                 let strategy = this.getStrategy(req.type);
                 if (strategy) {
+                    if (!strategy.validate(req)) {
+                        throw "Request is invalid";
+                    }
+
                     response = strategy.handle(req);
                 } else {
                     throw "Not supported type of message";
                 }
             }
-        } catch(e) {
+        } catch (e) {
             if (e instanceof TypeError) {
                 this.debug('Catch exception while executing message: %o\n%O', raw, e);
                 response = "Bad syntax of message";

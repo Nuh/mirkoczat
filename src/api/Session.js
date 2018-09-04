@@ -33,6 +33,10 @@ class Session extends ctx('api.Observable') {
         }
     }
 
+    is(username, type) {
+        return this.user && this.user.is(username, type);
+    }
+
     isOnline() {
         return this.websocket && this.websocket.readyState === 1;
     }

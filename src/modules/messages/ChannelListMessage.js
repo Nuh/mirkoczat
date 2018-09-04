@@ -1,13 +1,12 @@
-class ChannelListMessage {
-    constructor(parent) {
-        this.context = parent.context;
-    }
-
+class ChannelListMessage extends ctx('api.channels.message.AbstractMessage') {
     prepare() {
         this.channels = this.context.getModule('channels');
     }
 
-    handle(msg) {
+    doValidate() {
+    }
+
+    doHandle(msg) {
         let channels = _.clone(this.channels.getAllCanJoin(msg.source.user));
         return _(channels).filter((ch) => _.size(ch.users)).map((ch) => {
             let channel = _.pick(_.clone(ch), ['name', 'type', 'users', 'created']);

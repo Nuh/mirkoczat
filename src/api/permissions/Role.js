@@ -1,8 +1,9 @@
 class Role extends ctx('api.Observable') {
     constructor(name, ...permissions) {
+        super();
+
         this.name = name;
         this.permissions = _(permissions)
-                            .castArray()
                             .flattenDeep()
                             .compact()
                             .unique()
@@ -18,49 +19,33 @@ class Role extends ctx('api.Observable') {
         }
     }
 
-    hasPermission(component, action) {
-        return !!_(this.permissions).find((p) => p.is(component, action));
+    has(permission) {
+        return !!_(this.permissions).find((p) => p.is(permission));
     }
 
-    getPermissions(component, action) {
-        if (_.isUndefined(component) && _.isUndefined(action)) {
-            return [...this.permissions]
-        }
+    can(permission, action, ...args) {
+        return this.canAny(permission, action, ...args);
     }
 
-    can(component, action, ...args) {
-        return this.canAny(component, action, ...args);
+    canAny(permission, action, ...args) {
+        return _(this.permissions).filter((p) => p.is(permission)).some((p) => p.can(action, ...args));
     }
 
-    canAny(component, action, ...args) {
-        return _(this.permissions).filter((p) => p.is(component, action)).some((p) => p.can(...args));
-    }
-
-    canAll(component, action, ...args) {
-        return _(this.permissions).filter((p) => p.is(component, action)).every((p) => p.can(...args));
-    }
-
-    isAutomaticApplicable(...args) {
-        return false;
+    canAll(permission, action, ...args) {
+        return _(this.permissions).filter((p) => p.is(permission)).every((p) => p.can(action, ...args));
     }
 
     merge(other) {
         if (this !== other && this.equals(other)) {
-            for (let session of other.sessions) {
-                this.sessions.add(session);
+            for (let permission of other.permissions) {
+                this.permissions.add(permission);
             }
-
-            this.sex = other.sex;
         }
         return this;
     }
 
     equals(other) {
         return this === other || (other && this.name === other.name);
-    }
-
-    toResponse() {
-        return utils.convert.toResponse(_.omit(this, ['sessions', 'channels']), true);
     }
 
 }

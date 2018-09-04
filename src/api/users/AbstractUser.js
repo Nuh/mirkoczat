@@ -27,6 +27,11 @@ class AbstractUser extends ctx('api.Observable') {
         return this;
     }
 
+    is(user, type) {
+        let _type = type || user.type;
+        return user && utils.extract.username(user) === this.username && (!_type || _type === this.type);
+    }
+
     equals(other) {
         return this === other || (other && this.construct === other.construct && this.username === other.username);
     }

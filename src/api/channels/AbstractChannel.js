@@ -3,11 +3,11 @@ class AbstractChannel extends ctx('api.Observable') {
         super();
 
         if (new.target === AbstractChannel) {
-            throw new TypeError("Cannot construct AbstractChannel instances directly");
+            throw new TypeError('Cannot construct AbstractChannel instances directly');
         }
 
         this.type = this.constructor.name.toLowerCase().replace(/channel$/, '') || 'global';
-        this.debug = Debug(`CHANNEL:${this.type.toUpperCase()}:${name}`);
+
         this.users = new Set();
         this.sessions = new Set();
 
@@ -15,13 +15,14 @@ class AbstractChannel extends ctx('api.Observable') {
         this.owner = user;
         this.properties = {
             topic: '',
-            embed: ''
+            embed: []
         };
         this.created = new Date();
 
         this.validate();
 
-        this.debug('Created channel by %o', user && user.username ? user.username : user || 'SYSTEM');
+        this._debug = Debug(`CHANNEL:${this.type.toUpperCase()}:${name}`);
+        this._debug('Created channel by %o', utils.extract.username(user));
     }
 
     validate() {
@@ -32,7 +33,7 @@ class AbstractChannel extends ctx('api.Observable') {
     }
 
     hasUser(user) {
-        return _.isNil(user) || _.find([...this.users], (u) => u.username === utils.extract.username(user));
+        return _.isNil(user) || _.find([...this.users], (u) => u && u.is(user));
     }
 
     hasProperty(key) {
@@ -47,14 +48,14 @@ class AbstractChannel extends ctx('api.Observable') {
 
     setProperty(key, value, user = null) {
         if (!this.hasUser(user)) {
-            throw "User is not on the channel";
+            throw 'User is not on the channel';
         }
         let oldValue = this.getProperty(key);
         if (!_.isEqual(oldValue, value)) {
             this.properties = this.properties || {};
             this.properties[key] = value;
             this.send(new (ctx('api.messages.Action'))('channelproperty', user, {channel: this, key: key, value: value, oldValue: oldValue}));
-            this.debug('User %o changed property %s to %o (old: %o)', utils.extract.username(user), key, value, oldValue);
+            this._debug('User %o changed property %s to %o (old: %o)', utils.extract.username(user), key, value, oldValue);
         }
         return this;
     }
@@ -74,9 +75,10 @@ class AbstractChannel extends ctx('api.Observable') {
     join(session) {
         if (session && session instanceof ctx('api.Session') && session.user && session.user instanceof ctx('api.users.AbstractUser')) {
             if (!this.users.has(session.user) && this.canJoin(session.user)) {
-                this.send(new (ctx('api.messages.Action'))('channeljoin', session.user, {name: this.name}));
+                let channel = {name: this.name, type: this.type};
+                this.send(new (ctx('api.messages.Action'))('channeljoin', session.user, {channel}));
                 this.users.add(session.user);
-                this.debug('User %o joined channel', utils.extract.username(session));
+                this._debug('User %o joined channel', utils.extract.username(session));
             }
             if (!this.sessions.has(session)) {
                 this.sessions.add(session);
@@ -89,23 +91,32 @@ class AbstractChannel extends ctx('api.Observable') {
         if (session && session instanceof ctx('api.Session') && session.user && session.user instanceof ctx('api.users.AbstractUser')) {
             this.sessions.delete(session);
             if (!this.isOnline(session.user) && this.users.delete(session.user)) {
-                this.send(new (ctx('api.messages.Action'))('channelleave', session.user, {name: this.name}));
-                this.debug('User %o left channel because: %s', utils.extract.username(session), reason || 'no reason');
+                let channel = {name: this.name, type: this.type};
+                this.send(new (ctx('api.messages.Action'))('channelleave', session.user, {channel, reason}));
+                this._debug('User %o left channel because: %s', utils.extract.username(session), reason || 'no reason');
             }
             return !this.sessions.has(session);
         }
     }
 
     close(reason) {
-        proxy(this.users, 'leave', this, `Closed channel - ${reason || 'no reason'}`);
-        this.debug('Channel closed because: %s', reason || 'no reason');
+        proxy(this.sessions, 'leave', this, `Closed channel: ${reason || 'no reason'}`);
+        this._debug('Channel closed because: %s', reason || 'no reason');
         return true;
     }
 
     merge(other) {
         if (this !== other && this.equals(other)) {
+            for (let role of other.roles) {
+                this.roles.add(role);
+            }
+
             for (let user of other.users) {
                 this.users.add(user);
+            }
+
+            for (let session of other.sessions) {
+                this.sessions.add(session);
             }
 
             this.owner = other.owner;

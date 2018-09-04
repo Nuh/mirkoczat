@@ -1,4 +1,4 @@
-class ChannelActionMessage extends ctx('api.channels.message.AbstractMessage') {
+class ChannelKickMessage extends ctx('api.channels.message.AbstractMessage') {
     prepare() {
         this.channels = this.context.getModule('channels');
     }
@@ -15,13 +15,8 @@ class ChannelActionMessage extends ctx('api.channels.message.AbstractMessage') {
 
     doHandle(msg) {
         let channel = this.channels.get(msg.data.channel);
-        let action = {
-             channel: channel.name,
-             type: msg.data.type || 'message',
-             message: msg.data.message
-        };
-        return channel.send(new (ctx('api.messages.Action'))('channelaction', msg.source.user, action));
+        return channel.kick(msg.data.user, msg.data.reason, msg.source.user);
     }
 }
 
-module.exports = ChannelActionMessage;
+module.exports = ChannelKickMessage;

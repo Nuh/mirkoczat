@@ -26,9 +26,9 @@ let utils = {
 
                     let stat = fs.statSync(filepath);
                     if (stat.isDirectory()) {
-                       files = [...files, ...utils.fs.findFiles(filepath)]
+                        files = [...files, ...utils.fs.findFiles(filepath)]
                     } else if (stat.isFile()) {
-                       files.push(filepath)
+                        files.push(filepath)
                     }
                 }
             }
@@ -36,12 +36,16 @@ let utils = {
         }
     },
     modules: {
-        getName: (filename) =>  path.parse(filename || '').name,
+        getName: (filename) => path.parse(filename || '').name,
         find: (_path) => {
             let normalizedPath = utils.fs.normalizePath(_path);
             try {
                 return _(fs.readdirSync(normalizedPath)).values().flattenDeep().filter((filename) => ~filename.toLowerCase().indexOf('.js'))
-                    .map((filename) => _({name: utils.modules.getName(filename), path: path.join(normalizedPath, filename), filename: filename}).value())
+                    .map((filename) => _({
+                        name: utils.modules.getName(filename),
+                        path: path.join(normalizedPath, filename),
+                        filename: filename
+                    }).value())
                     .keyBy((n) => n.name).value();
             } catch (e) {
                 // ignore
@@ -92,6 +96,7 @@ let utils = {
         }
     },
     extract: {
+        channelname: (channel) => channel.channel && channel.channel.name ? channel.channel.name : (channel && channel.name ? channel.name : (channel || null)),
         username: (user) => user.user && user.user.username ? user.user.username : (user && user.username ? user.username : (user || 'SYSTEM'))
     }
 };
