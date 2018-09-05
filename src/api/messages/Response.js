@@ -1,7 +1,5 @@
-class Response extends ctx('api.Observable') {
+class Response {
     constructor(request, result = false, data = null) {
-        super();
-
         this.id = request.id;
         this.request = request;
         this.data = data;

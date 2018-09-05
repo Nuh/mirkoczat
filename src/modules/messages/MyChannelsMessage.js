@@ -1,9 +1,6 @@
 class MyChannelsMessage extends ctx('api.channels.message.AbstractMessage') {
-    doValidate() {
-    }
-
     doHandle(msg) {
-        return (msg.source.session || {}).channels;
+        return _.map([...(msg.source.session.channels || [])], ch => ch.toFullResponse());
     }
 }
 

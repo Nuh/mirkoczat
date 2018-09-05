@@ -33,7 +33,11 @@ class AbstractChannel extends ctx('api.Observable') {
     }
 
     hasUser(user) {
-        return _.isNil(user) || _.find([...this.users], (u) => u && u.is(user));
+        return _.isNil(user) || !!_.find([...this.users], (u) => u && u.is(user));
+    }
+
+    getUser(user) {
+        return !_.isNil(user) ? _.find([...this.users], (u) => u && u.is(user)) : null;
     }
 
     hasProperty(key) {
@@ -74,14 +78,17 @@ class AbstractChannel extends ctx('api.Observable') {
 
     join(session) {
         if (session && session instanceof ctx('api.Session') && session.user && session.user instanceof ctx('api.users.AbstractUser')) {
-            if (!this.users.has(session.user) && this.canJoin(session.user)) {
-                let channel = {name: this.name, type: this.type};
-                this.send(new (ctx('api.messages.Action'))('channeljoin', session.user, {channel}));
-                this.users.add(session.user);
-                this._debug('User %o joined channel', utils.extract.username(session));
-            }
-            if (!this.sessions.has(session)) {
-                this.sessions.add(session);
+            if (this.canJoin(session.user)) {
+                if (!this.users.has(session.user)) {
+                    this.send(new (ctx('api.messages.Action'))('channeljoin', session.user, {channel: this}));
+                    this.users.add(session.user);
+                    this._debug('User %o joined channel', utils.extract.username(session));
+                }
+                if (!this.sessions.has(session)) {
+                    this.sessions.add(session);
+                }
+            } else {
+                throw "Cannot join to channel";
             }
             return this.sessions.has(session);
         }
@@ -91,8 +98,7 @@ class AbstractChannel extends ctx('api.Observable') {
         if (session && session instanceof ctx('api.Session') && session.user && session.user instanceof ctx('api.users.AbstractUser')) {
             this.sessions.delete(session);
             if (!this.isOnline(session.user) && this.users.delete(session.user)) {
-                let channel = {name: this.name, type: this.type};
-                this.send(new (ctx('api.messages.Action'))('channelleave', session.user, {channel, reason}));
+                this.send(new (ctx('api.messages.Action'))('channelleave', session.user, {channel: this, reason}));
                 this._debug('User %o left channel because: %s', utils.extract.username(session), reason || 'no reason');
             }
             return !this.sessions.has(session);
@@ -130,6 +136,11 @@ class AbstractChannel extends ctx('api.Observable') {
     }
 
     toResponse() {
+        let {name, type, created} = this;
+        return utils.convert.toResponse({name, type, created, users: _.size(this.users)}, true);
+    }
+
+    toFullResponse() {
         return utils.convert.toResponse(_.omit(this, ['sessions']), true);
     }
 }

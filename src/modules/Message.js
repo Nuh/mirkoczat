@@ -39,7 +39,7 @@ class Message extends ctx('api.modularize.AbstractStrategized') {
                 let strategy = this.getStrategy(req.type);
                 if (strategy) {
                     if (!strategy.validate(req)) {
-                        throw "Request is invalid";
+                        throw "Bad syntax of message";
                     }
 
                     response = strategy.handle(req);

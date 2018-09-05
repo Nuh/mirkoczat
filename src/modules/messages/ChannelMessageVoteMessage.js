@@ -1,8 +1,4 @@
 class ChannelMessageVoteMessage extends ctx('api.channels.message.AbstractMessage') {
-    prepare() {
-        this.channels = this.context.getModule('channels');
-    }
-
     doValidate(msg) {
         let channel = this.channels.get(msg.data.channel);
         if (!channel) {

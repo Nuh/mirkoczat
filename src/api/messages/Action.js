@@ -1,9 +1,7 @@
 const uuid = require('uuid');
 
-class Action extends ctx('api.Observable') {
+class Action {
     constructor(type = null, author = null, data) {
-        super();
-
         this.id = uuid.v4();
         this.type = type || 'unknown';
         this.author = author;

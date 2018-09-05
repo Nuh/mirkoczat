@@ -20,7 +20,10 @@ class ChannelBan {
 
     execute() {
         if (this.channel && this.user && !this.reverted) {
-            this.user.leave(this.channel, `Banned by ${utils.extract.username(this.author)}`);
+            let user = this.channel.getUser(this.user) || this.user;
+            if (user && user.leave instanceof Function) {
+                user.leave(this.channel, `Banned by ${utils.extract.username(this.author)}, reason: ${this.reason || 'no reason'}`);
+            }
         }
         return this;
     }

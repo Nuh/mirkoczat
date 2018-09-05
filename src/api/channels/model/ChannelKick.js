@@ -19,7 +19,10 @@ class ChannelKick {
 
     execute() {
         if (this.channel && this.user) {
-            this.user.leave(this.channel, `Kicked by ${utils.extract.username(this.author)}`);
+            let user = this.channel.getUser(this.user) || this.user;
+            if (user && user.leave instanceof Function) {
+                user.leave(this.channel, `Kicked by ${utils.extract.username(this.author)}, reason: ${this.reason || 'no reason'}`);
+            }
         }
         return this;
     }

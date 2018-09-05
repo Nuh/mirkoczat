@@ -90,7 +90,8 @@ let utils = {
                     .omitBy((v, k) => {
                         return (k || '').toString().match(/^(_|$|event$|delimiter$|verboseMemoryLeak$|debug$)/)
                     })
-                    .mapValues(_.ary(utils.convert.toResponse, 1));
+                    .mapValues(_.ary(utils.convert.toResponse, 1))
+                    .value();
             }
             return obj;
         }

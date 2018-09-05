@@ -10,7 +10,7 @@ class Channels {
         if (channel instanceof ctx('api.channels.AbstractChannel')) {
             return _([...this.instances]).find((i) => i && i.equals(channel));
         }
-        let name = (channel && channel.name ? channel.name : channel).toString().toLowerCase();
+        let name = (channel && channel.name ? channel.name : channel || '').toString().toLowerCase();
         return _([...this.instances]).find((i) => i && i.name.toLowerCase() === name) || null;
     }
 
